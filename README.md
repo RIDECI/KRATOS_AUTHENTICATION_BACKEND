@@ -17,6 +17,7 @@ Microservicio encargado de gestionar la autenticación, autorización y verifica
 - [Características](#características)
 - [Tecnologías](#tecnologías)
 - [Requisitos Previos](#requisitos-previos)
+- [Diagramas](#diagramas)
 - [Instalación](#instalación)
 - [Configuración](#configuración)
 - [Uso](#uso)
@@ -52,6 +53,29 @@ Microservicio encargado de gestionar la autenticación, autorización y verifica
 - MongoDB 
 - Docker 
 - Git
+
+## Diagramas
+### Diagrama de Contexto
+![Diagrama de Contexto](docs/images/diagrama_contexto.png)
+- Explicación:
+
+### Diagrama de Clases
+![Diagrama de Clases](docs/images/diagrama_clases.png)
+- Explicación:
+
+### Diagrama de Componentes Específico
+![Diagrama de Componentes](docs/images/diagrama_componentes.png)
+- Explicación:
+
+### Diagrama de Despliegue
+![Diagrama de Despliegue](docs/images/diagrama_despliegue.png)
+- Explicación:
+
+### Diagrama de Bases de Datos (Por Definir)
+![Diagrama de Bases de Datos](docs/images/diagrama_bd.png)
+- Explicación:
+
+
 
 ## Instalación
 
