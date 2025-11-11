@@ -1,7 +1,7 @@
 # Workflow de CI para RidECI Kratos Authentication Service
-# Este workflow compila el proyecto, ejecuta tests y genera reportes de cobertura
+# Este workflow compila el proyecto y ejecuta tests
 
-name: CI - Build, Test & Coverage
+name: CI - Build & Test
 
 # Define cuándo se ejecuta el workflow
 on:
@@ -27,9 +27,9 @@ env:
 # Define los jobs (trabajos) que se ejecutarán
 jobs:
   
-  # Job principal: compilar, testear y generar cobertura
+  # Job principal: compilar y testear
   build-and-test:
-    name: Build, Test & Coverage
+    name: Build & Test
     runs-on: ubuntu-latest
     
     steps:
@@ -43,10 +43,9 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: 'maven'  # Cachea las dependencias de Maven para acelerar builds futuros
+          cache: 'maven'
       
       # Paso 3: Cachear dependencias de Maven
-      # Esto mejora el rendimiento al no descargar las dependencias en cada ejecución
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -55,105 +54,30 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       
       # Paso 4: Compilar el proyecto
-      # -B: modo batch (no interactivo)
-      # clean: limpia compilaciones anteriores
-      # compile: compila el código fuente
-      # --show-version: muestra la versión de Maven y Java
       - name: Build project
         run: mvn -B clean compile --show-version
       
-      # Paso 5: Ejecutar tests y generar reporte de cobertura
-      # test: ejecuta todos los tests
-      # jacoco:report: genera el reporte de cobertura con Jacoco
-      - name: Run tests with coverage
-        run: mvn -B test jacoco:report
+      # Paso 5: Ejecutar tests
+      - name: Run tests
+        run: mvn -B test
       
-      # Paso 6: Subir resultados de los tests como artifact
-    
+      # Paso 6: Subir resultados de los tests como artifact (opcional)
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            target/surefire-reports/
-            target/failsafe-reports/
-          retention-days: 30
+          path: target/surefire-reports/
+          retention-days: 7
       
-      # Paso 7: Subir reporte de cobertura en formato HTML
-      # Solo se ejecuta si el paso anterior fue exitoso
-      - name: Upload coverage report (HTML)
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-html
-          path: target/site/jacoco/
-          retention-days: 30
+      # Paso 7: Crear el JAR
+      - name: Package application
+        run: mvn -B package -DskipTests
       
-      # Paso 8: Subir reporte de cobertura en formato XML
-      # Útil para integraciones con otras herramientas
-      - name: Upload coverage report (XML)
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-xml
-          path: target/site/jacoco/jacoco.xml
-          retention-days: 30
-      
-      # Paso 9: Verificar umbrales de cobertura
-      # Verifica que se cumplan los mínimos de cobertura definidos en pom.xml
-      # continue-on-error: true significa que el workflow no falla si no se cumplen los umbrales
-      - name: Check coverage thresholds
-        run: mvn jacoco:check
-        continue-on-error: true
-      
-      # Paso 10: Mostrar resumen de cobertura en la página del workflow
-      # $GITHUB_STEP_SUMMARY es una variable especial que muestra información en la UI de GitHub
-      # >> redirige la salida al archivo de resumen
-      - name: Display coverage summary
-        if: always()
-        run: |
-          echo "### Coverage Report Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f target/site/jacoco/index.html ]; then
-            echo "Coverage report generated successfully" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Download the coverage artifacts to view detailed report" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Coverage report not found" >> $GITHUB_STEP_SUMMARY
-          fi
-
-  # Job secundario: compilar sin ejecutar tests
-  # Útil para verificar rápidamente que el código compila
-  verify-build:
-    name: Verify Build (no tests)
-    runs-on: ubuntu-latest
-    
-    steps:
-      # Paso 1: Descargar el código
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      # Paso 2: Configurar Java
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: 'maven'
-      
-      # Paso 3: Compilar y empaquetar sin ejecutar tests
-      # -DskipTests: salta la ejecución de tests
-      # package: crea el archivo JAR
-      - name: Build without tests
-        run: mvn -B clean package -DskipTests
-      
-      # Paso 4: Subir el JAR generado como artifact
-      # Útil si quieres descargar el JAR compilado
+      # Paso 8: Subir el JAR generado como artifact
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: application-jar
           path: target/*.jar
           retention-days: 7
-          
