@@ -1,7 +1,7 @@
-package edu.dosw.rideci.infrastructure.messaging.publisher;
+package edu.dosw.rideci.application.port.on;
 
 import edu.dosw.rideci.infrastructure.config.RabbitMQConfig;
-import edu.dosw.rideci.application.dtos.Request.CreateUserMessage;
+import edu.dosw.rideci.application.events.CreateUserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

@@ -1,4 +1,4 @@
-package edu.dosw.rideci.domain.services.impl;
+package edu.dosw.rideci.application.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -28,6 +28,9 @@ public class JWTService {
 
     private static final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000; // 15 minutos
     private static final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000; // 7 días
+
+    /** Tiempo de validez del token de recuperación de contraseña (15 min) */
+    private static final long RESET_TOKEN_VALIDITY = 15 * 60 * 1000;
 
     private static final String SECRET_KEY = "UltraSecretoDestroy9778123456789012SuperSeguroParaJWTRideci2025";
 
@@ -61,9 +64,6 @@ public class JWTService {
         return buildToken(claims, email, REFRESH_TOKEN_VALIDITY);
     }
 
-    /**
-     * Construye el token JWT
-     */
     private String buildToken(Map<String, Object> claims, String subject, long validity) {
         long currentTime = System.currentTimeMillis();
 
@@ -159,4 +159,25 @@ public class JWTService {
     public Date getExpirationFromToken(String token) {
         return getClaims(token).getExpiration();
     }
+
+    /**
+     * Genera un token para el proceso de recuperación de contraseña con una duración corta.
+     */
+    public String generateResetPasswordToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "RESET");
+
+        return buildToken(claims, email, RESET_TOKEN_VALIDITY);
+    }
+
+    public boolean isResetPasswordToken(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return "RESET".equals(claims.get("type"));
+        } catch (Exception e) {
+            log.error("No es un token de reset válido: {}", e.getMessage());
+            return false;
+        }
+    }
+
 }

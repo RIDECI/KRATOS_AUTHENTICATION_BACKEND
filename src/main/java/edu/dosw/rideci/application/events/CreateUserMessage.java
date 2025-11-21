@@ -1,4 +1,4 @@
-package edu.dosw.rideci.application.dtos.Request;
+package edu.dosw.rideci.application.events;
 
 import edu.dosw.rideci.domain.models.enums.*;
 import lombok.AllArgsConstructor;
@@ -28,5 +28,4 @@ public class CreateUserMessage implements Serializable {
     private identificationType identificationType;
     private String identificationNumber;
     private String Address;
-
 }

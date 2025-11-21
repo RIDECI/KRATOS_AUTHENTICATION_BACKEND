@@ -1,8 +1,6 @@
-package edu.dosw.rideci.application.dtos.Request;
+package edu.dosw.rideci.infrastructure.controllers.dto.Request;
 
-import edu.dosw.rideci.domain.models.enums.Profile;
 import edu.dosw.rideci.domain.models.enums.Role;
-import edu.dosw.rideci.domain.models.enums.VehicleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

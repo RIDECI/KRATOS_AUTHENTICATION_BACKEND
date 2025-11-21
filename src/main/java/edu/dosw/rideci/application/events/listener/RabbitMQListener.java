@@ -1,9 +1,8 @@
-package edu.dosw.rideci.infrastructure.messaging.listener;
+package edu.dosw.rideci.application.events.listener;
 
 import edu.dosw.rideci.infrastructure.config.RabbitMQConfig;
-import edu.dosw.rideci.application.dtos.Response.UserCreatedResponse;
-import edu.dosw.rideci.domain.models.UserAuth;
-import edu.dosw.rideci.domain.repositories.UserAuthRepository;
+import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserCreatedResponse;
+import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

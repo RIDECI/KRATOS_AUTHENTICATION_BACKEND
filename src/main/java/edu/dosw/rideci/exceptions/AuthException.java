@@ -1,4 +1,4 @@
-package edu.dosw.rideci.application.exceptions;
+package edu.dosw.rideci.exceptions;
 
 /**
  * Única excepción para todo el sistema de autenticación

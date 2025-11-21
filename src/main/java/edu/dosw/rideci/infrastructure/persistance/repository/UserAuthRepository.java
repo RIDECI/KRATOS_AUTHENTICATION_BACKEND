@@ -1,6 +1,6 @@
-package edu.dosw.rideci.domain.repositories;
+package edu.dosw.rideci.infrastructure.persistance.repository;
 
-import edu.dosw.rideci.domain.models.UserAuth;
+import edu.dosw.rideci.infrastructure.persistance.entity.UserAuth;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

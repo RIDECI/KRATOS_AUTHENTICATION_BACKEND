@@ -1,4 +1,4 @@
-package edu.dosw.rideci.application.dtos.Response;
+package edu.dosw.rideci.infrastructure.controllers.dto.Response;
 
 import edu.dosw.rideci.domain.models.enums.AccountState;
 import edu.dosw.rideci.domain.models.enums.Profile;

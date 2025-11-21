@@ -1,10 +1,8 @@
-package edu.dosw.rideci.infrastructure.api.controllers;
+package edu.dosw.rideci.infrastructure.controllers;
 
-import edu.dosw.rideci.application.dtos.Request.LoginRequest;
-import edu.dosw.rideci.application.dtos.Request.RefreshTokenRequest;
-import edu.dosw.rideci.application.dtos.Request.RegisterRequest;
-import edu.dosw.rideci.application.dtos.Response.AuthResponse;
-import edu.dosw.rideci.domain.services.impl.AuthService;
+import edu.dosw.rideci.application.service.AuthService;
+import edu.dosw.rideci.infrastructure.controllers.dto.Request.*;
+import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -61,4 +59,27 @@ public class AuthController {
         AuthResponse response = authService.refreshAccessToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * POST /api/auth/forgot-password
+     * Envia al correo proporcionado un email que genera un token temporal para recuperar contraseña.
+     */
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Solicitud modificar contraseña", description = "Solicitud del correo para restablecer contraseña")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok("Correo de recuperación enviado");
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     * Realiza proceso de recuperación de contraseña al acceder al email.
+     */
+    @PostMapping("/reset-password")
+    @Operation(summary = "Proceso para modificar contraseña", description = "Datos necesarios para realizar el cambio de contraseña")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
+    }
+
 }

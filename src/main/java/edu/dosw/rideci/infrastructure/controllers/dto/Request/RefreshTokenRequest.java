@@ -1,4 +1,4 @@
-package edu.dosw.rideci.application.dtos.Request;
+package edu.dosw.rideci.infrastructure.controllers.dto.Request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

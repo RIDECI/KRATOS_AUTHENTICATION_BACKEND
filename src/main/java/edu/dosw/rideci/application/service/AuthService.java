@@ -1,13 +1,14 @@
-package edu.dosw.rideci.domain.services.impl;
+package edu.dosw.rideci.application.service;
 
-import edu.dosw.rideci.application.dtos.Request.*;
-import edu.dosw.rideci.application.dtos.Response.*;
-import edu.dosw.rideci.domain.models.enums.Profile;
-import edu.dosw.rideci.domain.models.RefreshToken;
-import edu.dosw.rideci.domain.models.UserAuth;
-import edu.dosw.rideci.application.exceptions.AuthException;
-import edu.dosw.rideci.domain.repositories.*;
-import edu.dosw.rideci.infrastructure.messaging.publisher.RabbitMQPublisher;
+import edu.dosw.rideci.application.events.CreateUserMessage;
+import edu.dosw.rideci.infrastructure.controllers.dto.Request.*;
+import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
+import edu.dosw.rideci.infrastructure.persistance.entity.RefreshToken;
+import edu.dosw.rideci.infrastructure.persistance.entity.UserAuth;
+import edu.dosw.rideci.exceptions.AuthException;
+import edu.dosw.rideci.application.port.on.RabbitMQPublisher;
+import edu.dosw.rideci.infrastructure.persistance.repository.RefreshTokenRepository;
+import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -212,4 +213,41 @@ public class AuthService {
         refreshTokenRepository.save(refreshToken);
         log.debug("Refresh token guardado en BD");
     }
+
+    public void forgotPassword(ForgotPasswordRequest request) {
+
+        UserAuth user = userAuthRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AuthException("No existe una cuenta con ese email"));
+
+        // Token solo para reset (15 min)
+        String resetToken = jwtService.generateResetPasswordToken(user.getEmail());
+
+        //Aplicación de envio de correo
+
+        log.info("Token de recuperación generado para {}", user.getEmail());
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+
+        String email = jwtService.getEmailFromToken(request.getToken());
+
+        if (!jwtService.isResetPasswordToken(request.getToken())) {
+            throw new AuthException("Token de recuperación inválido");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Las contraseñas no coinciden");
+        }
+
+        UserAuth user = userAuthRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException("Usuario no encontrado"));
+
+        String newHash = passwordEncoder.encode(request.getNewPassword());
+        user.setPasswordHash(newHash);
+        userAuthRepository.save(user);
+
+        log.info("Contraseña actualizada para {}", email);
+    }
+
+
 }

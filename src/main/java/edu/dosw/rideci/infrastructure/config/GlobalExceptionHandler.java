@@ -1,6 +1,6 @@
 package edu.dosw.rideci.infrastructure.config;
 
-import edu.dosw.rideci.application.exceptions.*;
+import edu.dosw.rideci.exceptions.AuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
