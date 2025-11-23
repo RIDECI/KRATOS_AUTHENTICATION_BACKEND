@@ -1,5 +1,6 @@
 package edu.dosw.rideci.application.events.listener;
 
+import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
 import edu.dosw.rideci.infrastructure.config.RabbitMQConfig;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserCreatedResponse;
 import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RabbitMQListener {
 
-    private final UserAuthRepository userAuthRepository;
+    private final UserAuthRepositoryOutPort userAuthRepositoryOutPort;
 
     /**
      * Escucha la cola de respuestas cuando un usuario es creado en UserManagement
@@ -29,16 +30,14 @@ public class RabbitMQListener {
                 response.getUserAuthId(), response.getUserId());
 
         if (response.isSuccess()) {
-            // Actualizar UserAuth con el userId del User creado
-            userAuthRepository.findById(response.getUserAuthId())
+            userAuthRepositoryOutPort.findById(response.getUserAuthId())
                     .ifPresent(userAuth -> {
                         userAuth.setUserId(response.getUserId());
-                        userAuthRepository.save(userAuth);
+                        userAuthRepositoryOutPort.save(userAuth);
                         log.info("UserAuth actualizado con userId: {}", response.getUserId());
                     });
         } else {
             log.error("Error al crear usuario en UserManagement: {}", response.getMessage());
-            // Aquí podrías implementar lógica de compensación o retry
         }
     }
 }
