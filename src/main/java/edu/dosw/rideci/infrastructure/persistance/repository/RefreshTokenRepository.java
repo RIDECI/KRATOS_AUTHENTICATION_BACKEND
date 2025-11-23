@@ -1,6 +1,6 @@
 package edu.dosw.rideci.infrastructure.persistance.repository;
 
-import edu.dosw.rideci.infrastructure.persistance.entity.RefreshToken;
+import edu.dosw.rideci.infrastructure.persistance.entity.RefreshTokenDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,11 +12,11 @@ import java.util.Optional;
  * Repository para RefreshToken
  */
 @Repository
-public interface RefreshTokenRepository extends MongoRepository<RefreshToken, String> {
+public interface RefreshTokenRepository extends MongoRepository<RefreshTokenDocument, String> {
 
-    Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshTokenDocument> findByToken(String token);
 
-    List<RefreshToken> findByUserAuthId(String userAuthId);
+    List<RefreshTokenDocument> findByUserAuthId(String userAuthId);
 
     void deleteByUserAuthId(String userAuthId);
 

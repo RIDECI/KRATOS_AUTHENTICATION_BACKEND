@@ -2,7 +2,7 @@ package edu.dosw.rideci.infrastructure.controllers;
 
 import edu.dosw.rideci.application.service.AuthService;
 import edu.dosw.rideci.infrastructure.controllers.dto.Request.*;
-import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
+import edu.dosw.rideci.infrastructure.controllers.dto.Response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,9 +30,9 @@ public class AuthController {
      */
     @PostMapping("/register")
     @Operation(summary = "Registrar nuevo usuario", description = "Crea un nuevo usuario y genera tokens JWT")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         log.info("POST /api/auth/register - Email: {}", request.getEmail());
-        AuthResponse response = authService.register(request);
+        UserResponse response = authService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

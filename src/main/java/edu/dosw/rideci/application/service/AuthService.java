@@ -1,14 +1,18 @@
 package edu.dosw.rideci.application.service;
 
 import edu.dosw.rideci.application.events.CreateUserMessage;
+import edu.dosw.rideci.application.port.in.LoginUserUseCase;
+import edu.dosw.rideci.application.port.in.RegisterUserUseCase;
+import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
+import edu.dosw.rideci.domain.models.enums.AccountState;
 import edu.dosw.rideci.infrastructure.controllers.dto.Request.*;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
-import edu.dosw.rideci.infrastructure.persistance.entity.RefreshToken;
-import edu.dosw.rideci.infrastructure.persistance.entity.UserAuth;
+import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
+import edu.dosw.rideci.infrastructure.persistance.entity.RefreshTokenDocument;
+import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.exceptions.AuthException;
-import edu.dosw.rideci.application.port.on.RabbitMQPublisher;
+import edu.dosw.rideci.application.port.out.RabbitMQPublisher;
 import edu.dosw.rideci.infrastructure.persistance.repository.RefreshTokenRepository;
-import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,21 +28,21 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
-    private final UserAuthRepository userAuthRepository;
+    private final UserAuthRepositoryOutPort userAuthRepositoryOutPort;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RabbitMQPublisher rabbitMQPublisher;
     private final JWTService jwtService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-
+    @Override
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public UserResponse registerUser(RegisterRequest request) {
         log.info("Iniciando registro para email: {}", request.getEmail());
 
         // 1. Validar que el email no exista
-        if (userAuthRepository.existsByEmail(request.getEmail())) {
+        if (userAuthRepositoryOutPort.existsByEmail(request.getEmail())) {
             log.error("Email ya registrado: {}", request.getEmail());
             throw new AuthException("El email ya está registrado");
         }
@@ -57,17 +61,21 @@ public class AuthService {
                 .userId(null) // Se actualizará cuando UserManagement responda
                 .build();
 
-        userAuth = userAuthRepository.save(userAuth);
-        log.info("UserAuth creado con ID: {}", userAuth.getId());
+        UserAuth savedUserAuth = userAuthRepositoryOutPort.save(userAuth);
+        log.info("UserAuth creado con ID: {}", savedUserAuth.getId());
 
         // 4. Publicar mensaje a RabbitMQ para crear User en microservicio UserManagement
         try {
             CreateUserMessage message = CreateUserMessage.builder()
-                    .userAuthId(userAuth.getId())
+                    .userAuthId(savedUserAuth.getId())
                     .name(request.getName())
                     .email(request.getEmail())
                     .phoneNumber(request.getPhoneNumber())
                     .role(request.getRole())
+                    .dateOfBirth(request.getDateOfBirth())
+                    .identificationType(request.getIdentificationType())
+                    .identificationNumber(request.getIdentificationNumber())
+                    .address(request.getAddress())
                     .build();
 
             rabbitMQPublisher.publishCreateUserMessage(message);
@@ -75,40 +83,43 @@ public class AuthService {
 
         } catch (Exception e) {
             log.error("Error al publicar mensaje en RabbitMQ: {}", e.getMessage());
-            userAuthRepository.delete(userAuth);
+            userAuthRepositoryOutPort.delete(savedUserAuth);
             throw new AuthException("Error al crear el usuario: " + e.getMessage());
         }
 
         // 5. Generar tokens JWT (sin userId por ahora)
         String accessToken = jwtService.generateAccessToken(
-                userAuth.getEmail(),
-                userAuth.getRole().toString(),
+                savedUserAuth.getEmail(),
+                savedUserAuth.getRole().toString(),
                 null // userId se actualizará después
         );
 
         String refreshToken = jwtService.generateRefreshToken(
-                userAuth.getEmail(),
+                savedUserAuth.getEmail(),
                 null
         );
 
-        saveRefreshToken(refreshToken, userAuth.getId());
+        saveRefreshToken(refreshToken, savedUserAuth.getId());
 
         log.info("Registro exitoso para: {}", request.getEmail());
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(15 * 60L)
+        return UserResponse.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .createdAt(LocalDateTime.now())
+                .role(request.getRole())
+                .state(AccountState.PENDING)
                 .build();
     }
 
     @Transactional
+    @Override
     public AuthResponse login(LoginRequest request) {
         log.info("Intento de login para: {}", request.getEmail());
 
         // 1. Buscar usuario por email
-        UserAuth userAuth = userAuthRepository.findByEmail(request.getEmail())
+        UserAuth userAuth = userAuthRepositoryOutPort.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     log.error("Usuario no encontrado: {}", request.getEmail());
                     return new AuthException("Email incorrecto");
@@ -122,7 +133,7 @@ public class AuthService {
 
         // 3. Actualizar lastLogin
         userAuth.setLastLogin(LocalDateTime.now());
-        userAuthRepository.save(userAuth);
+        userAuthRepositoryOutPort.save(userAuth);
 
         // 4. Generar tokens JWT
         String accessToken = jwtService.generateAccessToken(
@@ -164,7 +175,7 @@ public class AuthService {
         }
 
         // 2. Buscar refresh token en BD
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
+        RefreshTokenDocument refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
                 .orElseThrow(() -> {
                     log.error("Refresh token no encontrado en BD");
                     return new AuthException("Refresh token no válido");
@@ -178,7 +189,7 @@ public class AuthService {
         }
 
         // 4. Obtener datos del usuario
-        UserAuth userAuth = userAuthRepository.findById(refreshToken.getUserAuthId())
+        UserAuth userAuth = userAuthRepositoryOutPort.findById(refreshToken.getUserAuthId())
                 .orElseThrow(() -> {
                     log.error("Usuario no encontrado para refresh token");
                     return new AuthException("Usuario no encontrado");
@@ -203,7 +214,7 @@ public class AuthService {
 
 
     private void saveRefreshToken(String token, String userAuthId) {
-        RefreshToken refreshToken = RefreshToken.builder()
+        RefreshTokenDocument refreshToken = RefreshTokenDocument.builder()
                 .token(token)
                 .userAuthId(userAuthId)
                 .createdAt(LocalDateTime.now())
@@ -216,7 +227,7 @@ public class AuthService {
 
     public void forgotPassword(ForgotPasswordRequest request) {
 
-        UserAuth user = userAuthRepository.findByEmail(request.getEmail())
+        UserAuth user = userAuthRepositoryOutPort.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AuthException("No existe una cuenta con ese email"));
 
         // Token solo para reset (15 min)
@@ -229,9 +240,9 @@ public class AuthService {
 
     public void resetPassword(ResetPasswordRequest request) {
 
-        String email = jwtService.getEmailFromToken(request.getToken());
+        String email = jwtService.getEmailFromToken(request.getResetToken());
 
-        if (!jwtService.isResetPasswordToken(request.getToken())) {
+        if (!jwtService.isResetPasswordToken(request.getResetToken())) {
             throw new AuthException("Token de recuperación inválido");
         }
 
@@ -239,12 +250,12 @@ public class AuthService {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
 
-        UserAuth user = userAuthRepository.findByEmail(email)
+        UserAuth user = userAuthRepositoryOutPort.findByEmail(email)
                 .orElseThrow(() -> new AuthException("Usuario no encontrado"));
 
         String newHash = passwordEncoder.encode(request.getNewPassword());
         user.setPasswordHash(newHash);
-        userAuthRepository.save(user);
+        userAuthRepositoryOutPort.save(user);
 
         log.info("Contraseña actualizada para {}", email);
     }

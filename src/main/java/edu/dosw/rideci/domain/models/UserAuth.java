@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class UserAuth {
-
     private String id; // MongoDB genera el ID automáticamente
     private String email;
     private String passwordHash;

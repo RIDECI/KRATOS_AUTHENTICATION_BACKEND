@@ -1,4 +1,4 @@
-package edu.dosw.rideci.application.port.on;
+package edu.dosw.rideci.application.port.out;
 
 import edu.dosw.rideci.infrastructure.config.RabbitMQConfig;
 import edu.dosw.rideci.application.events.CreateUserMessage;

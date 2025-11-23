@@ -27,5 +27,5 @@ public class CreateUserMessage implements Serializable {
     private Date dateOfBirth;
     private identificationType identificationType;
     private String identificationNumber;
-    private String Address;
+    private String address;
 }

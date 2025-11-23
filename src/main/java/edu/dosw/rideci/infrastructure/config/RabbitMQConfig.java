@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-
     public static final String USER_EXCHANGE = "user.exchange";
     public static final String USER_CREATE_QUEUE = "user.create.queue";
     public static final String USER_CREATED_RESPONSE_QUEUE = "user.created.response.queue";
