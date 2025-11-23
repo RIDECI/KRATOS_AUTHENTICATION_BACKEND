@@ -1,18 +1,18 @@
 package edu.dosw.rideci.application.service;
 
-import edu.dosw.rideci.application.events.CreateUserMessage;
+import edu.dosw.rideci.application.events.UserEvent;
 import edu.dosw.rideci.application.port.in.LoginUserUseCase;
 import edu.dosw.rideci.application.port.in.RegisterUserUseCase;
+import edu.dosw.rideci.application.port.out.RefreshTokenRepositoryOutPort;
 import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
+import edu.dosw.rideci.domain.models.RefreshToken;
 import edu.dosw.rideci.domain.models.enums.AccountState;
 import edu.dosw.rideci.infrastructure.controllers.dto.Request.*;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
-import edu.dosw.rideci.infrastructure.persistance.entity.RefreshTokenDocument;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.exceptions.AuthException;
-import edu.dosw.rideci.application.port.out.RabbitMQPublisher;
-import edu.dosw.rideci.infrastructure.persistance.repository.RefreshTokenRepository;
+import edu.dosw.rideci.infrastructure.persistance.repository.RabbitEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,8 +31,8 @@ import java.time.LocalDateTime;
 public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
     private final UserAuthRepositoryOutPort userAuthRepositoryOutPort;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final RabbitMQPublisher rabbitMQPublisher;
+    private final RefreshTokenRepositoryOutPort refreshTokenRepositoryOutPort;
+    private final RabbitEventPublisher rabbitMQPublisher;
     private final JWTService jwtService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -64,21 +64,20 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         UserAuth savedUserAuth = userAuthRepositoryOutPort.save(userAuth);
         log.info("UserAuth creado con ID: {}", savedUserAuth.getId());
 
-        // 4. Publicar mensaje a RabbitMQ para crear User en microservicio UserManagement
+        // 4. Publicar en RabbitMQ
         try {
-            CreateUserMessage message = CreateUserMessage.builder()
-                    .userAuthId(savedUserAuth.getId())
+            UserEvent message = UserEvent.builder()
                     .name(request.getName())
                     .email(request.getEmail())
                     .phoneNumber(request.getPhoneNumber())
-                    .role(request.getRole())
-                    .dateOfBirth(request.getDateOfBirth())
-                    .identificationType(request.getIdentificationType())
+                    .role(request.getRole().toString())
+                    .birthOfDate(request.getDateOfBirth().toString())
+                    .identificationType(request.getIdentificationType().toString())
                     .identificationNumber(request.getIdentificationNumber())
                     .address(request.getAddress())
                     .build();
 
-            rabbitMQPublisher.publishCreateUserMessage(message);
+            rabbitMQPublisher.publish(message,"user.create");
             log.info("Mensaje publicado a RabbitMQ para crear usuario");
 
         } catch (Exception e) {
@@ -86,11 +85,11 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
             userAuthRepositoryOutPort.delete(savedUserAuth);
             throw new AuthException("Error al crear el usuario: " + e.getMessage());
         }
-
         // 5. Generar tokens JWT (sin userId por ahora)
         String accessToken = jwtService.generateAccessToken(
                 savedUserAuth.getEmail(),
                 savedUserAuth.getRole().toString(),
+                savedUserAuth.getPasswordHash(),
                 null // userId se actualizará después
         );
 
@@ -139,6 +138,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String accessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
+                userAuth.getInstitutionalId(),
                 userAuth.getUserId()
         );
 
@@ -175,7 +175,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         }
 
         // 2. Buscar refresh token en BD
-        RefreshTokenDocument refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
+        RefreshToken refreshToken = refreshTokenRepositoryOutPort.findByToken(refreshTokenString)
                 .orElseThrow(() -> {
                     log.error("Refresh token no encontrado en BD");
                     return new AuthException("Refresh token no válido");
@@ -184,7 +184,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 3. Verificar expiración
         if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             log.error("Refresh token expirado");
-            refreshTokenRepository.delete(refreshToken);
+            refreshTokenRepositoryOutPort.deleteByToken(refreshToken);
             throw new AuthException("Refresh token expirado");
         }
 
@@ -199,6 +199,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String newAccessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
+                userAuth.getInstitutionalId(),
                 userAuth.getUserId()
         );
 
@@ -214,14 +215,14 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
 
     private void saveRefreshToken(String token, String userAuthId) {
-        RefreshTokenDocument refreshToken = RefreshTokenDocument.builder()
+        RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
                 .userAuthId(userAuthId)
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusDays(7)) // 7 días
                 .build();
 
-        refreshTokenRepository.save(refreshToken);
+        refreshTokenRepositoryOutPort.save(refreshToken);
         log.debug("Refresh token guardado en BD");
     }
 

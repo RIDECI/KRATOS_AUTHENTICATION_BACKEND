@@ -1,12 +1,15 @@
 package edu.dosw.rideci.infrastructure.persistance.repository;
+import edu.dosw.rideci.application.events.UserEvent;
+import edu.dosw.rideci.application.port.out.EventPublisher;
+import edu.dosw.rideci.infrastructure.persistance.repository.mapper.UserAuthMapper;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.infrastructure.persistance.entity.UserAuthDocument;
-import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
@@ -14,6 +17,7 @@ import java.util.Optional;
 public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
 
     private final UserAuthRepository mongoRepository;
+    private final UserAuthMapper userAuthMapper;
 
     @Override
     public UserAuth save(UserAuth userAuth) {
@@ -27,24 +31,23 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
                 userAuth.getLastLogin()
         );
         UserAuthDocument saved = mongoRepository.save(document);
-        return toDomain(saved);
+        return userAuthMapper.toDomain(saved);
     }
 
     @Override
     public void delete(UserAuth userAuth) {
 
     }
-
     @Override
     public Optional<UserAuth> findById(String id) {
         return mongoRepository.findById(id)
-                .map(this::toDomain);
+                .map(userAuthMapper::toDomain);
     }
 
     @Override
     public Optional<UserAuth> findByEmail(String email) {
         return mongoRepository.findByEmail(email)
-                .map(this::toDomain);
+                .map(userAuthMapper::toDomain);
     }
 
     @Override
@@ -61,18 +64,6 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
         document.setRole(userAuth.getRole());
 
         UserAuthDocument updated = mongoRepository.save(document);
-        return toDomain(updated);
-    }
-
-    private UserAuth toDomain(UserAuthDocument document) {
-        return new UserAuth(
-                document.getId(),
-                document.getEmail(),
-                document.getPasswordHash(),
-                document.getRole(),
-                document.getUserId(),
-                document.getCreatedAt(),
-                document.getLastLogin()
-        );
+        return userAuthMapper.toDomain(updated);
     }
 }

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserAuth {
     private String id; // MongoDB genera el ID automáticamente
+    private String institutionalId;
     private String email;
     private String passwordHash;
     private Role role;

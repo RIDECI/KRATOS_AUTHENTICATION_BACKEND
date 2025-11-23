@@ -17,15 +17,19 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateUserMessage implements Serializable {
+public class UserEvent implements Serializable {
 
-    private String userAuthId; // ID del UserAuth en el microservicio de Authentication
+    private Long userId;
+
     private String name;
     private String email;
-    private String phoneNumber;
-    private Role role;
-    private Date dateOfBirth;
-    private identificationType identificationType;
+
+    private String identificationType;
     private String identificationNumber;
+
+    private String phoneNumber;
     private String address;
+
+    private String role;
+    private String birthOfDate;
 }

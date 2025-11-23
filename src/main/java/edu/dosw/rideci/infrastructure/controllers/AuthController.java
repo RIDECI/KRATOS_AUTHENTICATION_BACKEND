@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Endpoints de autenticación y autorización")
 public class AuthController {
@@ -25,7 +25,7 @@ public class AuthController {
     private final AuthService authService;
 
     /**
-     * POST /api/auth/register
+     * POST /auth/register
      * Registra un nuevo usuario
      */
     @PostMapping("/register")
@@ -37,7 +37,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/login
+     * POST /auth/login
      * Autentica un usuario existente
      */
     @PostMapping("/login")
@@ -49,7 +49,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/refresh
+     * POST /auth/refresh
      * Renueva el access token usando el refresh token
      */
     @PostMapping("/refresh")
@@ -61,7 +61,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/forgot-password
+     * POST /auth/forgot-password
      * Envia al correo proporcionado un email que genera un token temporal para recuperar contraseña.
      */
     @PostMapping("/forgot-password")
@@ -72,7 +72,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/reset-password
+     * POST /auth/reset-password
      * Realiza proceso de recuperación de contraseña al acceder al email.
      */
     @PostMapping("/reset-password")

@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Endpoints públicos
+                        .requestMatchers("/auth/**").permitAll() // Endpoints públicos
                         .requestMatchers("/actuator/**").permitAll() // Health checks
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger
                         .anyRequest().authenticated() // El resto requiere autenticación
