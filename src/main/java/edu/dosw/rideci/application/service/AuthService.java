@@ -1,6 +1,7 @@
 package edu.dosw.rideci.application.service;
 
 import edu.dosw.rideci.application.events.UserEvent;
+import edu.dosw.rideci.application.port.out.EventPublisher;
 import edu.dosw.rideci.application.port.in.LoginUserUseCase;
 import edu.dosw.rideci.application.port.in.RegisterUserUseCase;
 import edu.dosw.rideci.application.port.out.RefreshTokenRepositoryOutPort;
@@ -32,7 +33,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
     private final UserAuthRepositoryOutPort userAuthRepositoryOutPort;
     private final RefreshTokenRepositoryOutPort refreshTokenRepositoryOutPort;
-    private final RabbitEventPublisher rabbitMQPublisher;
+    private final RabbitEventPublisher eventPublisher;
     private final JWTService jwtService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -54,6 +55,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 3. Crear UserAuth (credenciales)
         UserAuth userAuth = UserAuth.builder()
                 .email(request.getEmail())
+                .institutionalId(request.getInstitutionalId())
                 .passwordHash(passwordHash)
                 .role(request.getRole())
                 .createdAt(LocalDateTime.now())
@@ -67,17 +69,17 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 4. Publicar en RabbitMQ
         try {
             UserEvent message = UserEvent.builder()
+                    .userId(request.getInstitutionalId())
                     .name(request.getName())
                     .email(request.getEmail())
                     .phoneNumber(request.getPhoneNumber())
                     .role(request.getRole().toString())
-                    .birthOfDate(request.getDateOfBirth().toString())
                     .identificationType(request.getIdentificationType().toString())
                     .identificationNumber(request.getIdentificationNumber())
                     .address(request.getAddress())
                     .build();
 
-            rabbitMQPublisher.publish(message,"user.create");
+            eventPublisher.publish(message,"auth.user.create");
             log.info("Mensaje publicado a RabbitMQ para crear usuario");
 
         } catch (Exception e) {
@@ -103,6 +105,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         log.info("Registro exitoso para: {}", request.getEmail());
 
         return UserResponse.builder()
+                .userId(request.getInstitutionalId())
                 .name(request.getName())
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
@@ -138,7 +141,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String accessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
-                userAuth.getInstitutionalId(),
+                userAuth.getInstitutionalId().toString(),
                 userAuth.getUserId()
         );
 
@@ -199,7 +202,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String newAccessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
-                userAuth.getInstitutionalId(),
+                userAuth.getInstitutionalId().toString(),
                 userAuth.getUserId()
         );
 

@@ -19,7 +19,7 @@ public class RabbitMQConfig {
 
     public static final String USER_CREATE_QUEUE = "user.create.queue";
 
-    public static final String USER_CREATE_ROUTING_KEY = "user.create";
+    public static final String USER_CREATE_ROUTING_KEY = "auth.user.create";
 
     @Bean
     public Queue userCreateQueue() {

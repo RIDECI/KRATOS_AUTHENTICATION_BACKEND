@@ -31,5 +31,4 @@ public class UserEvent implements Serializable {
     private String address;
 
     private String role;
-    private String birthOfDate;
 }

@@ -40,12 +40,12 @@ public class RegisterRequest {
 
     @NotNull(message = "El rol es obligatorio")
     private Role role; // STUDENT, PROFESSOR, ADMIN
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
-    private Date dateOfBirth;
     @NotNull(message = "El tipo de identificación es obligatorio")
     private identificationType identificationType;
     @NotNull(message = "El número de identificación es obligatorio")
     private String identificationNumber;
     @NotNull(message = "La dirección es obligatoria")
     private String Address;
+    @NotNull(message = "El carnet institucional es obligatorio")
+    private Long institutionalId;
 }
