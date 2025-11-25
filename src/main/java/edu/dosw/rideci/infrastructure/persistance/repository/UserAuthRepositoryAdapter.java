@@ -24,6 +24,7 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
         UserAuthDocument document = new UserAuthDocument(
                 userAuth.getId(),
                 userAuth.getEmail(),
+                userAuth.getInstitutionalId(),
                 userAuth.getPasswordHash(),
                 userAuth.getRole(),
                 userAuth.getUserId(),

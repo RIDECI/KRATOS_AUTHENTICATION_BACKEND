@@ -2,6 +2,7 @@ package edu.dosw.rideci.infrastructure.controllers.dto.Request;
 
 import edu.dosw.rideci.domain.models.enums.Role;
 import edu.dosw.rideci.domain.models.enums.identificationType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,11 +29,16 @@ public class RegisterRequest {
             regexp = "^[A-Za-z0-9._%+-]+@(escuelaing\\.edu\\.co|mail\\.escuelaing\\.edu\\.co)$",
             message = "El correo debe ser de los dominios @escuelaing.edu.co o @mail.escuelaing.edu.co"
     )
-
+    @Schema(
+            example = "usuario@mail.escuelaing.edu.co"
+    )
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, message = "La contraseña debe tener mínimo 8 caracteres")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>]).{8,}$",
+            message = "La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula y un carácter especial"
+    )
     private String password;
 
     @NotBlank(message = "El teléfono es obligatorio")

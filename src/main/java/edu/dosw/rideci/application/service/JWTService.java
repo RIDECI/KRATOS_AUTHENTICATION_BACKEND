@@ -43,11 +43,10 @@ public class JWTService {
     /**
      * Genera un Access Token (15 minutos)
      */
-    public String generateAccessToken(String email, String role, String institutionalId, Long userId) {
+    public String generateAccessToken(String email, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("createdAt", LocalDateTime.now().toString());
-        claims.put("institutionalId", institutionalId);
         claims.put("userId", userId);
         claims.put("type", "ACCESS");
 

@@ -14,6 +14,7 @@ import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.exceptions.AuthException;
 import edu.dosw.rideci.infrastructure.persistance.repository.RabbitEventPublisher;
+import edu.dosw.rideci.infrastructure.persistance.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,6 +37,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
     private final RabbitEventPublisher eventPublisher;
     private final JWTService jwtService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     @Transactional
@@ -60,9 +62,9 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
                 .role(request.getRole())
                 .createdAt(LocalDateTime.now())
                 .lastLogin(LocalDateTime.now())
-                .userId(null) // Se actualizará cuando UserManagement responda
                 .build();
-
+        System.out.println("Carnet recibido: " + request.getInstitutionalId());
+        System.out.println("Carnet guardado: " + userAuth.getInstitutionalId());
         UserAuth savedUserAuth = userAuthRepositoryOutPort.save(userAuth);
         log.info("UserAuth creado con ID: {}", savedUserAuth.getId());
 
@@ -87,12 +89,11 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
             userAuthRepositoryOutPort.delete(savedUserAuth);
             throw new AuthException("Error al crear el usuario: " + e.getMessage());
         }
-        // 5. Generar tokens JWT (sin userId por ahora)
+        // 5. Generar tokens JWT
         String accessToken = jwtService.generateAccessToken(
                 savedUserAuth.getEmail(),
                 savedUserAuth.getRole().toString(),
-                savedUserAuth.getPasswordHash(),
-                null // userId se actualizará después
+                userAuth.getInstitutionalId()
         );
 
         String refreshToken = jwtService.generateRefreshToken(
@@ -141,8 +142,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String accessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
-                userAuth.getInstitutionalId().toString(),
-                userAuth.getUserId()
+                userAuth.getInstitutionalId()
         );
 
         String refreshToken = jwtService.generateRefreshToken(
@@ -159,6 +159,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(15 * 60L)
+                .userId(userAuth.getInstitutionalId())
                 .build();
     }
 
@@ -202,8 +203,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         String newAccessToken = jwtService.generateAccessToken(
                 userAuth.getEmail(),
                 userAuth.getRole().toString(),
-                userAuth.getInstitutionalId().toString(),
-                userAuth.getUserId()
+                userAuth.getInstitutionalId()
         );
 
         log.info("Access token renovado exitosamente para: {}", userAuth.getEmail());

@@ -21,11 +21,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Document(collection = "userAuth")
 public class UserAuthDocument {
-
     @Id
-    private String id; // MongoDB genera el ID automáticamente
+    private String id;
     @Indexed(unique = true)
     private String email;
+    private Long institutionalId;
     private String passwordHash;
     private Role role;
     private Long userId;
