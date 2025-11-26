@@ -37,7 +37,7 @@ jobs:
       - name: Run tests and verify
         run: mvn clean verify
         env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
           RABBIT_HOST: ${{ secrets.RABBIT_HOST }}
           RABBIT_PORT: ${{ secrets.RABBIT_PORT }}
           RABBIT_USER: ${{ secrets.RABBIT_USER }}
