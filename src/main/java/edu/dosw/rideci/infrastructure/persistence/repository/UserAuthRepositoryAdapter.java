@@ -1,15 +1,12 @@
-package edu.dosw.rideci.infrastructure.persistance.repository;
-import edu.dosw.rideci.application.events.UserEvent;
-import edu.dosw.rideci.application.port.out.EventPublisher;
-import edu.dosw.rideci.infrastructure.persistance.repository.mapper.UserAuthMapper;
+package edu.dosw.rideci.infrastructure.persistence.repository;
+import edu.dosw.rideci.infrastructure.persistence.repository.mapper.UserAuthMapper;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
 import edu.dosw.rideci.domain.models.UserAuth;
-import edu.dosw.rideci.infrastructure.persistance.entity.UserAuthDocument;
+import edu.dosw.rideci.infrastructure.persistence.entity.UserAuthDocument;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component

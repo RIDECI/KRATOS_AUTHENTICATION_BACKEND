@@ -1,8 +1,8 @@
-package edu.dosw.rideci.infrastructure.persistance.repository;
+package edu.dosw.rideci.infrastructure.persistence.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import edu.dosw.rideci.infrastructure.persistance.entity.UserAuthDocument;
+import edu.dosw.rideci.infrastructure.persistence.entity.UserAuthDocument;
 
 import java.util.Optional;
 

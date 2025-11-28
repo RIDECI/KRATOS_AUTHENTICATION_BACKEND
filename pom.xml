@@ -161,14 +161,16 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/model/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/enums/**</exclude>
-                                <exclude>**/config/*</exclude>
-                                <exclude>**/mapper/*</exclude>
-                                <exclude>**/exception/*</exclude>
-                                <exclude>**/common/*</exclude>
-                                <exclude>**/KratosUserManagementBackendApplication.class</exclude>
+                                <exclude>**/application/service/**</exclude>
+                                <exclude>**/exceptions/**</exclude>
+                                <exclude>**/application/events/**</exclude>
+                                <exclude>**/application/port/**</exclude>
+                                <exclude>**/domain/**</exclude>
+                                <exclude>**/infrastructure/controller/dto/**</exclude>
+                                <exclude>**/infrastructure/config/**</exclude>
+                                <exclude>**/infrastructure/persistence/entity/**</exclude>
+                                <exclude>**/infrastructure/persistence/repository/mapper/**</exclude>
+                                <exclude>**/KratosAuthenticationBackendApplication.class</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -182,7 +184,7 @@
                                 <rule>
                                     <element>CLASS</element>
                                     <excludes>
-                                        <exclude>edu/dosw/rideci/Application</exclude>
+                                        <exclude>edu/dosw/rideci/KratosAuthenticationBackendApplication</exclude>
                                     </excludes>
                                 </rule>
                                 <rule>
@@ -197,14 +199,14 @@
                                 </rule>
                             </rules>
                             <excludes>
-                                <exclude>**/model/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/enums/**</exclude>
-                                <exclude>**/config/*</exclude>
+                                <exclude>**/infrastructure/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/domain/**</exclude>
+                                <exclude>**/exceptions/*</exclude>
                                 <exclude>**/mapper/*</exclude>
-                                <exclude>**/exception/*</exclude>
+                                <exclude>**/application/*</exclude>
                                 <exclude>**/common/*</exclude>
-                                <exclude>**/KratosUserManagementBackendApplication.class</exclude>
+                                <exclude>**/KratosAuthenticationBackendApplication.class</exclude>
                             </excludes>
                         </configuration>
                     </execution>

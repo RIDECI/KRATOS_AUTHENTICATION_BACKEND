@@ -1,11 +1,11 @@
-package edu.dosw.rideci.infrastructure.persistance.repository;
+package edu.dosw.rideci.infrastructure.persistence.repository;
 
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 import edu.dosw.rideci.application.port.out.RefreshTokenRepositoryOutPort;
 import edu.dosw.rideci.domain.models.RefreshToken;
-import edu.dosw.rideci.infrastructure.persistance.entity.RefreshTokenDocument;
+import edu.dosw.rideci.infrastructure.persistence.entity.RefreshTokenDocument;
 import java.util.Optional;
 
 @Component

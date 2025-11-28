@@ -1,7 +1,5 @@
-package edu.dosw.rideci.infrastructure.persistance.repository;
+package edu.dosw.rideci.infrastructure.persistence.repository;
 
-import edu.dosw.rideci.application.events.UserEvent;
-import edu.dosw.rideci.infrastructure.config.RabbitMQConfig;
 import org.springframework.stereotype.Component;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 

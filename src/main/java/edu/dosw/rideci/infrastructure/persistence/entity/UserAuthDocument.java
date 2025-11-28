@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.persistance.entity;
+package edu.dosw.rideci.infrastructure.persistence.entity;
 
 import edu.dosw.rideci.domain.models.enums.Role;
 import lombok.AllArgsConstructor;

@@ -108,7 +108,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         UserAuth userAuth = userAuthRepositoryOutPort.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     log.error("Usuario no encontrado: {}", request.getEmail());
-                    return new AuthException("Email incorrecto");
+                    return new AuthException("Email no registrado");
                 });
 
         // 2. Validar contraseña

@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.persistance.repository.mapper;
+package edu.dosw.rideci.infrastructure.persistence.repository.mapper;
 import java.util.List;
 
 import org.mapstruct.Mapper;
@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
 import edu.dosw.rideci.application.events.UserEvent;
-import edu.dosw.rideci.infrastructure.persistance.entity.UserAuthDocument;
+import edu.dosw.rideci.infrastructure.persistence.entity.UserAuthDocument;
 
 @Mapper(componentModel = "spring")
 public interface UserAuthMapper {

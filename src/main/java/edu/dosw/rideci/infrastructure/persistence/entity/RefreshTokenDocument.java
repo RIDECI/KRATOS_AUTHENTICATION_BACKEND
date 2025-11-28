@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.persistance.entity;
+package edu.dosw.rideci.infrastructure.persistence.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
