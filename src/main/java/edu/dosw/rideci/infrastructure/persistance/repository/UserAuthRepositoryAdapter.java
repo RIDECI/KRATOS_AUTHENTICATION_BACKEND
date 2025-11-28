@@ -37,7 +37,7 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
 
     @Override
     public void delete(UserAuth userAuth) {
-
+        mongoRepository.deleteById(userAuth.getId());
     }
     @Override
     public Optional<UserAuth> findById(String id) {

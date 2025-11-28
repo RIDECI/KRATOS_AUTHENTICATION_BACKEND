@@ -18,5 +18,5 @@ public class AuthResponse {
     private String refreshToken;
     private String tokenType = "Bearer";
     private Long expiresIn; // Segundos hasta que expire el access token
-    private Long userId;
+    private Long institutionalId;
 }

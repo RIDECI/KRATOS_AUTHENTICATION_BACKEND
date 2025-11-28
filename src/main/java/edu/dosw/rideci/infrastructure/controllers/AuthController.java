@@ -59,27 +59,4 @@ public class AuthController {
         AuthResponse response = authService.refreshAccessToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * POST /auth/forgot-password
-     * Envia al correo proporcionado un email que genera un token temporal para recuperar contraseña.
-     */
-    @PostMapping("/forgot-password")
-    @Operation(summary = "Solicitud modificar contraseña", description = "Solicitud del correo para restablecer contraseña")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        authService.forgotPassword(request);
-        return ResponseEntity.ok("Correo de recuperación enviado");
-    }
-
-    /**
-     * POST /auth/reset-password
-     * Realiza proceso de recuperación de contraseña al acceder al email.
-     */
-    @PostMapping("/reset-password")
-    @Operation(summary = "Proceso para modificar contraseña", description = "Datos necesarios para realizar el cambio de contraseña")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        authService.resetPassword(request);
-        return ResponseEntity.ok("Contraseña actualizada correctamente");
-    }
-
 }

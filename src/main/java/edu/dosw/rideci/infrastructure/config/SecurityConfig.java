@@ -36,12 +36,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-    /**
-     * Bean de BCryptPasswordEncoder para hashear contraseñas
-     */
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

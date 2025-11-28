@@ -1,5 +1,6 @@
-package edu.dosw.rideci.application.service;
+package edu.dosw.rideci.infrastructure.adapters;
 
+import edu.dosw.rideci.application.port.out.TokenProviderOutPort;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,6 +10,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -23,26 +25,24 @@ import java.util.Map;
  * Compatible con JJWT 0.11.5
  */
 @Slf4j
-@Service
-public class JWTService {
+@Component
+public class JWTTokenProviderAdapter implements TokenProviderOutPort {
 
-    private static final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000; // 15 minutos
+    private static final long ACCESS_TOKEN_VALIDITY = 30 * 60 * 1000; // 30 minutos
     private static final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000; // 7 días
-
-    /** Tiempo de validez del token de recuperación de contraseña (15 min) */
-    private static final long RESET_TOKEN_VALIDITY = 15 * 60 * 1000;
 
     private static final String SECRET_KEY = "UltraSecretoDestroy9778123456789012SuperSeguroParaJWTRideci2025";
 
     private final Key key;
 
-    public JWTService() {
+    public JWTTokenProviderAdapter() {
         this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * Genera un Access Token (15 minutos)
+     * Genera un Access Token (30 minutos)
      */
+    @Override
     public String generateAccessToken(String email, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -104,6 +104,7 @@ public class JWTService {
         }
     }
 
+    @Override
     public boolean isAccessToken(String token) {
         try {
             String type = (String) getClaims(token).get("type");
@@ -136,14 +137,6 @@ public class JWTService {
         return getClaims(token).getSubject();
     }
 
-    public String getRoleFromToken(String token) {
-        return (String) getClaims(token).get("role");
-    }
-
-    public String getProfileFromToken(String token) {
-        return (String) getClaims(token).get("profile");
-    }
-
     public Long getUserIdFromToken(String token) {
         Object userIdObj = getClaims(token).get("userId");
 
@@ -160,24 +153,5 @@ public class JWTService {
         return getClaims(token).getExpiration();
     }
 
-    /**
-     * Genera un token para el proceso de recuperación de contraseña con una duración corta.
-     */
-    public String generateResetPasswordToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("type", "RESET");
-
-        return buildToken(claims, email, RESET_TOKEN_VALIDITY);
-    }
-
-    public boolean isResetPasswordToken(String token) {
-        try {
-            Claims claims = getClaims(token);
-            return "RESET".equals(claims.get("type"));
-        } catch (Exception e) {
-            log.error("No es un token de reset válido: {}", e.getMessage());
-            return false;
-        }
-    }
-
 }
+

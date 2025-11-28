@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SendRecoveryEmailMessage {
     private String email;
-    private String resetToken;
+    private Long resetCode;
 }
