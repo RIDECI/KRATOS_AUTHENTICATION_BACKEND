@@ -14,6 +14,7 @@ import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.exceptions.AuthException;
+import edu.dosw.rideci.infrastructure.persistence.repository.RabbitEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +34,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
     private final UserAuthRepositoryOutPort userAuthRepositoryOutPort;
     private final RefreshTokenRepositoryOutPort refreshTokenRepositoryOutPort;
-    private final EventPublisher eventPublisher;
+    private final RabbitEventPublisher eventPublisher;
     private final TokenProviderOutPort tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
