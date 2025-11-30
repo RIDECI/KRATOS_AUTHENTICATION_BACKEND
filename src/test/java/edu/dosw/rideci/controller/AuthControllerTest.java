@@ -359,7 +359,7 @@ class AuthControllerTest {
                         {
                             "name": "David Santiago Palacios Pinzóm",
                             "email": "david.palacios-p@mail.escuelaing.edu.co",
-                            "password": "Constraseña123*",
+                            "password": "Contraseña123*",
                             "phoneNumber": "3193475479",
                             "role": "STUDENT",
                             "identificationType": "TI",

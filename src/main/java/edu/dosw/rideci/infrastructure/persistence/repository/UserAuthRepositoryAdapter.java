@@ -36,6 +36,7 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
     public void delete(UserAuth userAuth) {
         mongoRepository.deleteById(userAuth.getId());
     }
+
     @Override
     public Optional<UserAuth> findById(String id) {
         return mongoRepository.findById(id)
@@ -63,5 +64,10 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
 
         UserAuthDocument updated = mongoRepository.save(document);
         return userAuthMapper.toDomain(updated);
+    }
+
+    @Override
+    public void deleteByEmail(String userEmail) {
+        mongoRepository.deleteByEmail(userEmail);
     }
 }

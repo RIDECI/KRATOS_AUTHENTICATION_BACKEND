@@ -22,7 +22,6 @@ public class RegisterRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
     private String name;
-
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "Email inválido")
     @Pattern(
@@ -33,17 +32,14 @@ public class RegisterRequest {
             example = "usuario@mail.escuelaing.edu.co"
     )
     private String email;
-
     @NotBlank(message = "La contraseña es obligatoria")
     @Pattern(
             regexp = "^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>]).{8,}$",
             message = "La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula y un carácter especial"
     )
     private String password;
-
     @NotBlank(message = "El teléfono es obligatorio")
     private String phoneNumber;
-
     @NotNull(message = "El rol es obligatorio")
     private Role role; // STUDENT, PROFESSOR, ADMIN
     @NotNull(message = "El tipo de identificación es obligatorio")

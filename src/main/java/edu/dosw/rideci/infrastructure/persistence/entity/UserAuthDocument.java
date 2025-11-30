@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 @Document(collection = "userAuth")
 public class UserAuthDocument {
     @Id
+    @Indexed(unique = true)
     private String id;
     @Indexed(unique = true)
     private String email;

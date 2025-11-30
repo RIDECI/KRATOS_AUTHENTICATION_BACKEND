@@ -10,4 +10,5 @@ public interface UserAuthRepositoryOutPort {
     Optional<UserAuth> findByEmail(String email);
     boolean existsByEmail(String email);
     UserAuth update(String id, UserAuth userAuth);
+    void deleteByEmail(String userEmail);
 }

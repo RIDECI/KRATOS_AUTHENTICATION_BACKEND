@@ -1,7 +1,6 @@
 package edu.dosw.rideci.application.service;
 
 import edu.dosw.rideci.application.events.UserEvent;
-import edu.dosw.rideci.application.port.out.EventPublisher;
 import edu.dosw.rideci.application.port.in.LoginUserUseCase;
 import edu.dosw.rideci.application.port.in.RegisterUserUseCase;
 import edu.dosw.rideci.application.port.out.RefreshTokenRepositoryOutPort;
@@ -77,7 +76,6 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
                     .identificationNumber(request.getIdentificationNumber())
                     .address(request.getAddress())
                     .build();
-
             eventPublisher.publish(message,"auth.user.create");
             log.info("Mensaje publicado a RabbitMQ para crear usuario");
 
@@ -131,7 +129,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
 
         String refreshToken = tokenProvider.generateRefreshToken(
                 userAuth.getEmail(),
-                userAuth.getUserId()
+                userAuth.getInstitutionalId()
         );
 
         saveRefreshToken(refreshToken, userAuth.getId());

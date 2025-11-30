@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface UserAuthRepository extends MongoRepository<UserAuthDocument, String> {
     Optional<UserAuthDocument> findByEmail(String email);
     boolean existsByEmail(String email);
+    void deleteByEmail(String userEmail);
 }

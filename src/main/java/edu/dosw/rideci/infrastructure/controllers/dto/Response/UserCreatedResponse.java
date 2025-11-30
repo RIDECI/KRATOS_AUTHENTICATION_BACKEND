@@ -15,7 +15,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCreatedResponse implements Serializable {
-
     private String userAuthId; // Para saber que UserAuth actualizar
     private Long userId; // El ID del User creado en el microservicio UserManagement
     private boolean success;
