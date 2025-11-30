@@ -22,11 +22,11 @@ import java.time.LocalDateTime;
 @Document(collection = "userAuth")
 public class UserAuthDocument {
     @Id
-    @Indexed(unique = true)
     private String id;
     @Indexed(unique = true)
     private String email;
     private Long institutionalId;
+    @Indexed(unique = true)
     private String passwordHash;
     private Role role;
     private Long userId;
