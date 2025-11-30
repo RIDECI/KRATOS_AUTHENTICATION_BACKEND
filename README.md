@@ -1,10 +1,8 @@
-# KRATOS_AUTHENTICATION_BACKEND
+# 👥 KRATOS - Authentication Backend
 
-## Microservicio de Autenticación - RidECI
+Microservice responsible for **authentication and credential validation** through the use of JWT.
 
----
-
-## Desarrolladores
+## 👥 Developers
 
 * David Santiago Palacios Pinzón
 * Juan Carlos Leal Cruz
@@ -14,415 +12,405 @@
 
 ---
 
-## Tabla de Contenidos
+## 📑 Content Table
 
-* [Descripción](#descripción)
-* [Características](#características)
-* [Tecnologías Utilizadas](#tecnologías-utilizadas)
-* [Estrategia de Versionamiento y Branching](#estrategia-de-versionamiento-y-branching)
-  * [Estrategia de Ramas (Git Flow)](#estrategia-de-ramas-git-flow)
-  * [Convenciones de Nomenclatura](#convenciones-de-nomenclatura)
-  * [Convenciones de Commits](#convenciones-de-commits)
-* [Arquitectura del Proyecto](#arquitectura-del-proyecto)
-  * [Estructura de Capas](#estructura-de-capas)
-  * [Flujo de una Petición](#flujo-de-una-petición)
-* [Arquitectura Limpia - Organización de Capas](#arquitectura-limpia---organización-de-capas)
-* [Diagramas del Módulo](#diagramas-del-módulo)
-* [Instalación](#instalación)
-* [Configuración](#configuración)
-* [Uso](#uso)
-* [API Endpoints](#api-endpoints)
-* [Testing](#testing)
-* [Despliegue](#despliegue)
+1. [Project Architecture](#-project-architecture)
+    - [Hexagonal Structure](#-clean---hexagonal-structure)
+2. [API Documentation](#-api-endpoints)
+    - [Endpoints](#-api-endpoints)
+3. [Input & Output Data](#input-and-output-data)
+4. [Microservices Integration](#-connections-with-other-microservices)
+5. [Technologies](#technologies)
+6. [Branch Strategy](#-branches-strategy--structure)
+7. [System Architecture & Design](#-system-architecture--design) 
+8. [Getting Started](#-getting-started) 
+9. [Testing](#-testing)
 
 ---
 
-## Descripción
+## 🏛️ Project Architecture
 
-Microservicio encargado de gestionar la **autenticación y autorización** de usuarios de la plataforma **RidECI**. Garantiza que solo miembros autorizados de la comunidad universitaria accedan al sistema mediante validación de credenciales institucionales, generación de tokens JWT seguros y control de sesiones activas.
+The KRATOS - Authentication Backend have a unacoplated hexagonal - clean architecture where looks for isolate the business logic with the other part of the app dividing it in multiple components:
 
----
+### 🧠 DOMAIN (Core)
 
-## Características
+**Purpose:** It represents the **core of the business** and contains the most important concepts of the application. It defines **WHAT** the system does, not **HOW** it does it.
 
-### Funcionalidades Principales
+**Contains:**
 
-- Registro con correo institucional (@escuelaing.edu.co)
-- Autenticación segura con JWT
-- Gestión de perfiles (Estudiante, Profesor, Empleado Administrativo)
-- Verificación de conductores (licencia, placa, seguro)
-- Registro de actividad de usuarios
-- Recuperación de contraseña vía email institucional
-- Roles de movilidad dinámicos (conductor, pasajero, acompañante)
-- Actualización de datos personales desde el perfil
-- Sistema de aprobación y suspensión de usuarios por administrador
-- Tokens con expiración configurable para mayor seguridad
-- Validación de documentos antes de habilitar publicación de viajes
-- Logout y revocación de sesiones activas
+- **Entities:** UserAuth, RefreshToken.
+- **Enums:** Role (STUDENT, TEACHER, ADMINISTRATOR), AccountState (ACTIVE, INACTIVE, PENDING, SUSPENDED), IdentificationType (TI, CC, PP, CE).
 
----
+**Key principle:** This layer should NOT depend on external frameworks, databases or technologies.
 
-## Tecnologías Utilizadas
+### 🎯 APPLICATION (Aplicación)
 
-| **Categoría**              | **Tecnologías**                                          |
-| -------------------------- | -------------------------------------------------------- |
-| **Backend**                | Java 17, Spring Boot 3.5.7, Spring Security, Maven       |
-| **Base de Datos**          | MongoDB, PostgreSQL (Opcional)                           |
-| **Autenticación**          | JWT, BCrypt                                              |
-| **Testing**                | JUnit 5, Mockito, Testcontainers, Jacoco, SonarQube     |
-| **Documentación**          | Swagger UI, Postman                                      |
-| **DevOps y Deploy**        | Docker, Kubernetes (K8s), GitHub Actions, Azure, Vercel  |
-| **Comunicación y Gestión** | Git/GitHub, Figma, Slack, Jira                           |
+**Purpose:** Encapsulates the **application logic** and defines the **use cases** of the system. Orchestrate how the domain is used to solve specific problems.
 
----
+**Contains:**
 
-## Estrategia de Versionamiento y Branching
+- **Use Cases:**
+  - LoginUseCase: Login a User.
+  - RegisterUseCase: Register a User.
+- **OUTs:** EventPublisher, UserAuthRepositoryOutPort, RefreshTokenRepositoryOutPort, TokenProviderOutPort
+- **Service:** AuthService
 
-Se implementa una estrategia de versionamiento basada en **GitFlow**, garantizando un flujo de desarrollo **colaborativo, trazable y controlado**.
+### 🏛️ INFRASTRUCTURE (Infraestructura)
 
-### Beneficios:
+**Purpose:** Implements the **technical details** that allow the system to function. It handles persistence, file storage, external communication, and configuration.
 
-- Permite trabajo paralelo sin conflictos
-- Mantiene versiones estables y controladas
-- Facilita correcciones urgentes (*hotfixes*)
-- Proporciona un historial limpio y entendible
+**Contains:**
+- **config:** RabbitConfig Configuration, CorsConfig Configuration, SecurityConfig Configuration, PasswordConfiguration
+- **API/Controllers:** REST endpoints for authentication.
+- **DTOs:** AuthRequest, AuthResponse, ForgotPasswordRequest, LoginRequest, RegisterRequest, ResetPasswordRequest, UserResponse, UserCreatedResponse.
+- **Repositories:** Implementations using Spring Data MongoDB (UserRepository)
+- **External Services:** RabbitEventPublisher
+**Feature:** This layer DOES depend on frameworks and technologies (Spring Boot, MongoDB, Railway, etc.).
 
----
 
-## Estrategia de Ramas (Git Flow)
+The use of this architecture has the following benefits:
 
-| **Rama**                | **Propósito**                            | **Recibe de**           | **Envía a**        | **Notas**                      |
-| ----------------------- | ---------------------------------------- | ----------------------- | ------------------ | ------------------------------ |
-| `main`                  | Código estable para PREPROD o Producción | `release/*`, `hotfix/*` | Despliegue         | Protegida con PR y CI exitoso  |
-| `develop`               | Rama principal de desarrollo             | `feature/*`             | `release/*`        | Base para integración continua |
-| `feature/*`             | Nuevas funcionalidades o refactors       | `develop`               | `develop`          | Se eliminan tras el merge      |
-| `release/*`             | Preparación de versiones estables        | `develop`               | `main` y `develop` | Incluye pruebas finales        |
-| `bugfix/*` o `hotfix/*` | Corrección de errores críticos           | `main`                  | `main` y `develop` | Parches urgentes               |
+* ✅ **Separation of Concerns:** Distinct boundaries between logic and infrastructure.
+* ✅ **Maintainability:** Easier to update or replace specific components.
+* ✅ **Scalability:** Components can evolve independently.
+* ✅ **Testability:** The domain can be tested in isolation without a database or server.
 
----
-
-## Convenciones de Nomenclatura
-
-### Feature Branches
+## 📂 Clean - Hexagonal Structure
 
 ```
-feature/[nombre-funcionalidad]-kratos_[codigo-jira]
-```
-
-**Ejemplos:**
-
-```
-- feature/jwt-authentication-kratos_15
-- feature/user-verification-kratos_28
-```
-
-**Reglas:**
-
-* Formato: *kebab-case*
-* Incluir código Jira
-* Descripción breve y clara
-* Longitud máxima: 50 caracteres
-
----
-
-### Release Branches
-
-```
-release/[version]
-```
-
-**Ejemplos:**
-
-```
-- release/1.0.0
-- release/1.1.0-beta
-```
-
----
-
-### Hotfix Branches
-
-```
-hotfix/[descripcion-breve-del-fix]
-```
-
-**Ejemplos:**
-
-```
-- hotfix/fix-jwt-expiration
-- hotfix/email-validation-patch
-```
-
----
-
-## Convenciones de Commits
-
-### Formato Estándar
-
-```
-[codigo-jira] [tipo]: [descripción breve de la acción]
-```
-
-**Ejemplos:**
-
-```
-15-feat: implementar generación de tokens JWT
-28-fix: corregir validación de correo institucional
-```
-
----
-
-### Tipos de Commit
-
-| **Tipo**   | **Descripción**                      | **Ejemplo**                                        |
-| ----------- | ------------------------------------ | -------------------------------------------------- |
-| `feat`      | Nueva funcionalidad                  | `15-feat: agregar endpoint de registro de usuario` |
-| `fix`       | Corrección de errores                | `28-fix: resolver error en validación de email`    |
-| `docs`      | Cambios en documentación             | `32-docs: actualizar diagrama de arquitectura`     |
-| `refactor`  | Refactorización sin cambio funcional | `41-refactor: simplificar lógica de verificación`  |
-| `test`      | Pruebas unitarias o de integración   | `47-test: agregar tests para JWT service`          |
-| `chore`     | Mantenimiento o configuración        | `53-chore: actualizar dependencias Spring Boot`    |
-
-**Reglas:**
-
-* Un commit = una acción completa
-* Máximo **72 caracteres** por línea
-* Usar modo imperativo ("agregar", "corregir", etc.)
-* Descripción clara de qué y dónde
-* Commits pequeños y frecuentes
-
----
-
-## Arquitectura del Proyecto
-
-El backend de **KRATOS_AUTHENTICATION** sigue una **arquitectura limpia y desacoplada**, priorizando:
-
-* Separación de responsabilidades
-* Mantenibilidad
-* Escalabilidad
-* Facilidad de pruebas
-
----
-
-## Estructura de Capas
-
-```
-📂 kratos_backend
- ┣ 📂 domain/
- ┃ ┣ 📄 Entities/
- ┃ ┣ 📄 ValueObjects/
- ┃ ┣ 📄 Enums/
- ┃ ┣ 📄 Repositories/ (interfaces)
- ┃ ┣ 📄 Services/
- ┃ ┗ 📄 Events/
+📂 kratos_authentication_backend
+ ┃
  ┣ 📂 application/
- ┃ ┣ 📄 UseCases/
- ┃ ┣ 📄 DTOs/
- ┃ ┣ 📄 Mappers/
- ┃ ┗ 📄 Exceptions/
+ ┃  ┣ 📂 events/
+ ┃  ┃  ┣ 📂 listener/
+ ┃  ┃  ┣ 📄 Event
+ ┃  ┣ 📂 mapper/
+ ┃  ┣ 📂 port/
+ ┃  ┃  ┣ 📂 in/
+ ┃  ┃  ┣ 📂 out/
+ ┃  ┣ 📂 service/
+ ┃
+ ┣ 📂 domain/
+ ┃  ┣ 📂 model/
+ ┃     ┣ 📂 enums/
+ ┃     ┣ 📄 Modelo De Negocio
+ ┃
  ┣ 📂 infrastructure/
- ┃ ┣ 📄 API/Controllers/
- ┃ ┣ 📄 Database/
- ┃ ┣ 📄 Repositories/
- ┃ ┣ 📄 Config/
- ┃ ┣ 📄 Security/
- ┃ ┣ 📄 ExternalServices/
- ┃ ┗ 📄 ExceptionHandlers/
+ ┃  ┣ 📂 config/
+ ┃  ┣ 📂 controller/
+ ┃  ┃  ┣ 📂 dto/
+ ┃  ┃   ┃  ┣ 📂 request/
+ ┃  ┃   ┃  ┣ 📂 response/
+ ┃  ┃   ┣ 📄 Controller
+ ┃  ┃
+ ┃  ┣ 📂 persistance/
+ ┃     ┣ 📂 entity/
+ ┃     ┣ 📂 repository/
+ ┃        ┣ 📂 mapper/
+ ┃
  ┗ 📄 pom.xml
 ```
 
+# 📡 API Endpoints
+
+For detailed documentation refer to our Swagger UI (Running locally at http://localhost:8080/swagger-ui.html).
+
+Data input & output
+
+| Method   | URI               | Description                                    | Request Body / Params                                           |
+| :------- | :---------------- | :--------------------------------------------- | :-------------------------------------------------------------- |
+| `POST`   | `/auth/register`          | Register a user.                    | `{ "name": "...", "email": "...", ... }`     |
+| `POST`    | `/auth/login`     | Login a user.                  | `{ "name": "...", "email": "...", ... }`                                           |
+| `POST`    | `/auth/refresh`     | Refresh a user token.              |  `{ "name": "...", "email": "...", ... }` |
+Common status codes returned by the API.
+
+| Code  | Status                    | Description                                           |
+| :---- | :------------------------ | :---------------------------------------------------- |
+| `200` | **OK**                    | Request processed successfully.                       |
+| `201` | **Created**               | User created successfully.                            |
+| `400` | **Bad Request**           | Invalid user data or missing parameters.              |
+| `401` | **Unauthorized**          | Missing or invalid authentication token.              |
+| `403` | **Forbidden**             | User does not have permission to perform this action. |
+| `404` | **Not Found**             | User ID not found.                                    |
+| `409` | **Conflict**              | Email already exists or conflicting user data.        |
+| `500` | **Internal Server Error** | Unexpected server-side error.                         |
+
+# 🔗 Connections with other Microservices
+
+This module does not work alone. It interacts with the RideCi Ecosystem via REST APIs and Message Brokers (RabbitMQ):
+
+1. User Management Microservice: Responsible for receiving user data and constructing the UserDocument.
+
+# Technologies
+
+The following technologies were used to build and deploy this module:
+
+### Backend & Core
+![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
+
+### Database
+![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+
+### DevOps & Infrastructure
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
+
+### CI/CD & Quality Assurance
+![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+![SonarQube](https://img.shields.io/badge/SonarQube-4E9BCD?style=for-the-badge&logo=sonarqube&logoColor=white)
+![JaCoCo](https://img.shields.io/badge/JaCoCo-Coverage-green?style=for-the-badge)
+
+### Documentation & Testing
+![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+
+### Design 
+![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white)
+
+### Comunication & Project Management
+![Jira](https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white)
+![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)
+
 ---
 
-## Flujo de una Petición
+# 🌿 Branches Strategy & Structure
+
+This module follows a strict branching strategy based on Gitflow to ensure the ordered versioning,code quality and continous integration.
+
+
+
+| **Branch**                | **Purpose**                            | **Receive of**           | **Sent to**        | **Notes**                      |
+| ----------------------- | ---------------------------------------- | ----------------------- | ------------------ | ------------------------------ |
+| `main`                  | 🏁 Stable code for preproduction or Production | `release/*`, `hotfix/*` | 🚀 Production      | 🔐 Protected with PR y successful CI   |
+| `develop`               | 🧪 Main developing branch             | `feature/*`             | `release/*`        | 🔄 Base to continous deployment |
+| `feature/*`             | ✨ New functions or refactors  to be implemented       | `develop`               | `develop`          | 🧹 Are deleted after merge to develop      |
+| `release/*`             | 📦 Release preparation & final polish.      | `develop`               | `main` and `develop` | 🧪  Includes final QA. No new features added here.     |
+| `bugfix/*` or `hotfix/*` | 🛠️ Critical fixes for production         | `main`                  | `main` and `develop` | ⚡ Urgent patches. Highest priority
+
+# 🏷️ Naming Conventions
+
+## 🌿 Branch Naming
+
+### ✨ Feature Branches
+Used for new features or non-critical improvements.
+
+**Format:**
+`feature/[shortDescription]`
+
+**Examples:**
+- `feature/authenticationModule`
+- `feature/securityService`
+
+**Rules:**
+* 🧩 **Case:** strictly *camelCase* (lowercase with hyphens).
+* ✍️ **Descriptive:** Short and meaningful description.
+
+## 🔥 Commit Conventions
+
+### 🚀 Standard Format
 
 ```
-1. Cliente envía petición HTTP
-   ↓
-2. Controller (Infrastructure) - Recibe y valida
-   ↓
-3. Use Case (Application) - Orquesta la lógica
-   ↓
-4. Domain Service - Ejecuta reglas de negocio
-   ↓
-5. Repository Interface (Domain) - Contrato de datos
-   ↓
-6. Repository Implementation (Infrastructure) - Acceso a MongoDB
-   ↓
-7. Respuesta fluye de vuelta transformándose en cada capa
+[type]: [short description of the action]
+```
+
+**Ejemplos:**
+
+```
+feat: implement driver document verification
+fix: correct reputation average calculation
 ```
 
 ---
 
-## Arquitectura Limpia - Organización de Capas
+### 🏷️ Commit Types
 
-### DOMAIN (Dominio)
+| **Type**   | **Description**                        | **Example**                               |
+| ---------- | -------------------------------------- | ----------------------------------------- |
+| `feat`     | New functionality                      | `feat: add vehicle registration endpoint` |
+| `fix`      | Bug fixes                              | `fix: fix issue in profile update`        |
+| `docs`     | Documentation changes                  | `docs: update API documentation`          |
+| `refactor` | Refactoring without functional changes | `refactor: optimize user query`           |
+| `test`     | Unit or integration tests              | `test: add tests for reputation service`  |
+| `chore`    | Maintenance or configuration           | `chore: update Spring dependencies`       |
 
-**Propósito:** Representa el **núcleo del negocio** y contiene los conceptos más importantes de la aplicación. Define **QUÉ** hace el sistema, no **CÓMO** lo hace.
 
-**Contiene:**
+**Rules**
 
-- **Entities:** Objetos principales del negocio que representan conceptos fundamentales con sus reglas e invariantes
-- **Value Objects:** Objetos inmutables que encapsulan valores con reglas específicas (ej: Email que valida formato @escuelaing.edu.co)
-- **Enums:** Enumeraciones propias del dominio
-- **Repositories (interfaces):** Contratos abstractos que definen operaciones de acceso a datos sin especificar implementación técnica
-- **Services:** Lógica de negocio compleja que involucra múltiples entidades o procesos del dominio
-- **Events:** Eventos que representan sucesos importantes dentro del dominio (ej: usuario registrado)
+* One commit = one complete action
+* Use the imperative mood (“add”, “fix”, “update”, etc.)
+* Provide a clear description of what and where
+* Keep commits small and frequent
 
-**Principio clave:** Esta capa NO debe depender de frameworks, bases de datos o tecnologías externas.
+# 📐 System Architecture & Design
 
+This section provides a visual representation of the module's architecture ilustrating the base diagrams to show the application structure and components flow.
+
+### 🧩 Context Diagram
+---
+Text
+
+![Context Diagram](./docs/uml/diagrama_contexto.png)
+
+### 🧩 Specific Components Diagram
+---
+This diagram illustrates the structure and dependencies between components in the User Management and Authentication microservices.
+Both services apply Hexagonal Architecture (Ports & Adapters), ensuring separation of concerns, maintainability, and independent testability.
+
+*Authentication*:
+
+This module handles user authentication and token generation. It is organized into controllers, adapters, use cases, and outbound ports.
+
+* Controllers:
+    * Auth Controller
+      Receives and processes all HTTP requests related to login and registration.
+      It converts these inputs into internal DTOs and forwards them to the adapters.
+
+When applying a hexagonal architecture, before developing the use cases, we need adapter components:
+
+* Use Cases:
+
+    * Login Use Case:
+      Validates credentials and triggers token generation.
+
+    * Register User Use Case:
+      Registers a new user in the system through the outbound port.
+
+    * Generate Token Use Case:
+      Issues security tokens (e.g., JWT) after a successful authentication.
+
+* Ports:
+
+    * Database Port:
+      Allows the use cases to persist or retrieve authentication-related data.
+
+*User Management*:
+
+This service handles user lifecycle (create, update, delete, retrieve) following strict hexagonal architecture separation.
+
+* Controllers:
+
+  * User Controller:
+    Central entry point for all user-related API requests.
+    It delegates the execution to the User Adapter and relies on DTOs for communication.
+
+* Use Cases:
+
+  These represent application-specific business rules:
+
+   * Create User Use Case:
+    Handles registration logic within the User Management context.
+
+   * Update User Use Case:
+    Manages modifications to user profiles.
+
+   * Delete User Use Case:
+    Performs logical deletion of a user.
+
+   * Get User Use Case:
+    Retrieves user information by ID.
+
+   * Get Users Use Case:
+    Provides user listing with optional filters.
+
+* Ports
+
+  Ports define what the application expects from its infrastructure:
+
+  * User Repository Port:
+    Interface that declares what operations the domain needs from the persistence layer.
+
+
+
+![Specific Components Diagram](./docs/uml/diagrama_componentes.png)
+
+### 🧩 Use Cases Diagram
+---
+This diagram presents the main functionalities defined by each actor. This facilitates a better understanding when implementing the module's multiple functions, as well as identifying and separating each actor's roles when using the application.
+
+![Use Cases Diagram](./docs/uml/diagrama_casos.png)
+
+### 🧩 Class Diagram
+---
+Based on the Specific Components diagram, we created the class diagram, where we defined an Builder design pattern that will help to create users in the system.
+
+![Class Diagram](./docs/uml/diagrama_clases.png)
+
+### 🧩 Data Base Diagram
 ---
 
-### APPLICATION (Aplicación)
+This diagram represents how the data is stored, where we will find the multiple documents, and the data that will be stored in an embedded or referenced manner.
 
-**Propósito:** Encapsula la **lógica de aplicación** y define los **casos de uso** del sistema. Orquesta cómo se utiliza el dominio para resolver problemas específicos.
+![Data Base Diagram](./docs/uml/diagrama_bd.png)
 
-**Contiene:**
 
-- **Use Cases:** Casos de uso que implementan funcionalidades completas del sistema
-- **DTOs (Data Transfer Objects):** Objetos que transportan datos entre capas (RequestDTOs, ResponseDTOs)
-- **Mappers:** Transformadores que convierten entre entidades del dominio y DTOs
-- **Exceptions:** Excepciones personalizadas que representan errores del negocio o de la aplicación
-
-**Ventaja principal:** Los casos de uso son independientes del framework y pueden ser reutilizados en diferentes contextos.
-
+### 🧩 Sequence Diagrams
 ---
+![Sequence Diagrams](./docs/uml/Register_SequenceDiagram.png)
+![Sequence Diagrams](./docs/uml/Login_SequenceDiagram.png)
+![Sequence Diagrams](./docs/uml/RefreshToken_SequenceDiagram.png)
 
-### INFRASTRUCTURE (Infraestructura)
 
-**Propósito:** Implementa los **detalles técnicos** que permiten que el sistema funcione. Maneja aspectos de persistencia, comunicación externa, seguridad y configuración.
 
-**Contiene:**
-
-- **API/Controllers:** Puntos de entrada REST que exponen los endpoints HTTP
-- **Database:** Configuración y modelos específicos de la base de datos (anotaciones MongoDB)
-- **Repositories:** Clases que implementan las interfaces del dominio usando tecnologías específicas
-- **Config:** Clases de configuración del sistema (CORS, beans de Spring, propiedades)
-- **Security:** Implementación de mecanismos de seguridad (JWT, filtros de autenticación, Spring Security)
-- **External Services:** Integraciones con servicios externos (SMTP, almacenamiento de archivos)
-- **Exception Handlers:** Manejo centralizado de excepciones que convierte errores en respuestas HTTP
-
-**Característica:** Esta capa SÍ depende de frameworks y tecnologías (Spring Boot, MongoDB, JWT, etc.).
-
+### 🧩 Specific Deploy Diagram
 ---
+This diagram illustrates the cloud deployment architecture and workflow of the Authentication and User Management module.
+![Specific Deploy Diagram](./docs/uml/diagrama_despliegue.png)
 
-### Beneficios de esta Arquitectura
+# 🧪 Testing
 
-| Característica                      | Beneficio                                                          |
-| ----------------------------------- | ------------------------------------------------------------------ |
-| **Independencia de Frameworks**     | El dominio no depende de Spring, MongoDB o cualquier tecnología    |
-| **Testabilidad**                    | Cada capa puede probarse de forma aislada con mocks                |
-| **Mantenibilidad**                  | Cambios en BD o framework no afectan la lógica de negocio          |
-| **Escalabilidad**                   | Fácil agregar nuevos casos de uso sin modificar código existente   |
-| **Claridad**                        | Responsabilidades bien definidas facilitan comprensión del código  |
+Testing is a essential part of the project functionability, this part will show the code coverage and code quality analazing with tools like JaCoCo and SonarQube.
 
+### 📊 Code Coverage (JaCoCo)
 ---
+![JaCoCo](./docs/uml/)
 
-## Diagramas del Módulo
 
-### Diagrama de Contexto
+### 🔍 Static Analysis (SonarQube)
+![SonarQube](./docs/uml/)
 
-![Diagrama de Contexto](docs/uml/Diagrama_de_Contexto.png)
+# 🚀 Getting Started
 
-**Explicación:**
+This section guides you through setting ip the project locally. This project requires **Java 17**. If you have a different version, you can change it or we recommend using **Docker** to ensure compatibility before compile.
 
-El diagrama presenta el Microservicio de Autenticación como el principal enfoque del módulo de RidECI. En la parte superior están los cuatro tipos de usuarios que van a usar la plataforma: estudiantes, profesores, administrativos y el administrador del sistema. Todos ellos entran a través del sistema de RIDECI, que es básicamente la puerta de entrada para hacer login, registrarse o recuperar su contraseña.
+### Clone & open repository
 
-El Microservicio de Autenticación hace el trabajo pesado del sistema. Cuando alguien intenta entrar, este microservicio recibe el email y la contraseña, se comunica con el Microservicio de Gestión de Usuarios para verificar que todo esté correcto, y si todo sale bien, genera un token JWT. Este token es especial porque incluye dos cosas importantes: el role (que dice si eres estudiante, profesor o administrativo) y el types[] (que es un array que dice si puedes ser conductor, pasajero o acompañante). También se encarga de ayudarte si olvidaste tu contraseña y de verificar que tu correo sea de verdad uno institucional de la institución.
-
----
-
-### Diagrama de Clases
-
-![Diagrama de Clases](docs/uml/diagrama_clases.png)
-
-**Explicación:**
-
-*[Pendiente de documentación]*
-
----
-
-### Diagrama de Componentes Específico
-
-![Diagrama de Componentes](docs/images/diagrama_componentes.png)
-
-**Explicación:**
-
-*[Pendiente de documentación]*
-
----
-
-### Diagrama de Despliegue
-
-![Diagrama de Despliegue](docs/uml/diagrama_despliegue.png)
-
-**Explicación:**
-
-*[Pendiente de documentación]*
-
----
-
-### Diagrama de Bases de Datos
-
-![Diagrama de Bases de Datos](docs/uml/diagrama_bd.png)
-
-**Explicación:**
-
-*[Pendiente de documentación]*
-
----
-
-## Instalación
-
-### Prerrequisitos
-
-- Java 17 o superior
-- Maven 3.6+
-- MongoDB 4.4+
-- Git
-
-### Clonar el repositorio
-
-```bash
+``` bash
 git clone https://github.com/RIDECI/KRATOS_AUTHENTICATION_BACKEND.git
+```
+
+``` bash
 cd KRATOS_AUTHENTICATION_BACKEND
 ```
 
-### Instalar dependencias
+You can open it on your favorite IDE
 
-```bash
+### Dockerize the project
+
+Dockerize before compile the project avoid configuration issues and ensure environment consistency.
+
+``` bash
+docker compose up -d
+```
+
+### Install dependencies & compile project
+
+Download dependencies and compile the source code.
+
+``` bash
 mvn clean install
 ```
 
----
+``` bash
+mvn clean compile
+```
 
-## Configuración
+### To run the project
+Start the Spring Boot server
 
-*[Sección pendiente de completar con variables de entorno, configuración de base de datos, etc.]*
+``` bash
+mvn spring-boot:run
+```
 
----
-
-## Uso
-
-*[Sección pendiente de completar con instrucciones de ejecución local, desarrollo, etc.]*
-
----
-
-## API Endpoints
-
-*[Sección pendiente de completar con documentación de endpoints principales]*
-
----
-
-## Testing
-
-*[Sección pendiente de completar con instrucciones de ejecución de tests, cobertura, etc.]*
-
----
-
-## Despliegue
-
-*[Sección pendiente de completar con instrucciones de despliegue en Azure, configuración de K8s, etc.]*
-
----
-
-**RidECI** - Conectando a la comunidad para moverse de forma segura, económica y sostenible.
