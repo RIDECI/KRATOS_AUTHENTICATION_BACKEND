@@ -70,4 +70,9 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
     public void deleteByEmail(String userEmail) {
         mongoRepository.deleteByEmail(userEmail);
     }
+
+    @Override
+    public boolean existsById(Long userId) {
+        return mongoRepository.existsById(userId);
+    }
 }
