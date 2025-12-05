@@ -1,6 +1,7 @@
 package edu.dosw.rideci.controller;
 
 import edu.dosw.rideci.application.service.AuthService;
+import edu.dosw.rideci.application.service.PasswordResetService;
 import edu.dosw.rideci.domain.models.enums.AccountState;
 import edu.dosw.rideci.domain.models.enums.Role;
 import edu.dosw.rideci.domain.models.enums.identificationType;
@@ -10,6 +11,8 @@ import edu.dosw.rideci.infrastructure.controllers.dto.Request.RefreshTokenReques
 import edu.dosw.rideci.infrastructure.controllers.dto.Request.RegisterRequest;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.AuthResponse;
 import edu.dosw.rideci.infrastructure.controllers.dto.Response.UserResponse;
+import edu.dosw.rideci.infrastructure.controllers.dto.Request.ForgotPasswordRequest;
+import edu.dosw.rideci.infrastructure.controllers.dto.Request.ResetPasswordRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.token.TokenService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,6 +28,7 @@ import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,6 +45,12 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private PasswordResetService passwordResetService;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
@@ -200,7 +211,7 @@ class AuthControllerTest {
                         .content("""
                         {
                             "email": "david.palacios-p@mail.escuelaing.edu.co",
-                            "password": "Constraseña123*"
+                            "password": "Contraseña123*"
                         }
                         """))
                 .andExpect(status().isOk())
@@ -349,10 +360,9 @@ class AuthControllerTest {
     @Test
     @DisplayName("Should register user with TI identification type")
     void shouldRegisterUserWithTI() throws Exception {
-        // Given
+
         when(authService.registerUser(any(RegisterRequest.class))).thenReturn(userResponse);
 
-        // When & Then
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -375,10 +385,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("Should login with valid credentials and return tokens")
     void shouldLoginAndReturnTokens() throws Exception {
-        // Given
         when(authService.login(any(LoginRequest.class))).thenReturn(authResponse);
 
-        // When & Then
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -393,5 +401,180 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresIn").isNumber())
                 .andExpect(jsonPath("$.institutionalId").isNumber());
+    }
+
+    @Test
+    @DisplayName("Should request password reset - Success")
+    void shouldRequestPasswordResetSuccessfully() throws Exception {
+        doNothing().when(passwordResetService).requestPasswordReset(any(ForgotPasswordRequest.class));
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "email": "david.palacios-p@mail.escuelaing.edu.co"
+                    }
+                    """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Si el email existe, recibirás un código de recuperación"));
+    }
+
+    @Test
+    @DisplayName("Should fail to request password reset with invalid email format")
+    void shouldFailRequestPasswordResetWithInvalidEmail() throws Exception {
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "email": "invalido@gmail.com"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to request password reset with missing email")
+    void shouldFailRequestPasswordResetWithMissingEmail() throws Exception {
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to request password reset with empty email")
+    void shouldFailRequestPasswordResetWithEmptyEmail() throws Exception {
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "email": ""
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should reset password successfully")
+    void shouldResetPasswordSuccessfully() throws Exception {
+        doNothing().when(passwordResetService).resetPassword(any(ResetPasswordRequest.class));// void method
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "resetToken": "token12345",
+                        "newPassword": "NuevaContraseña123!",
+                        "confirmPassword": "NuevaContraseña123!"
+                    }
+                    """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Contraseña actualizada con éxito"));
+    }
+
+    @Test
+    @DisplayName("Should fail to reset password with missing token")
+    void shouldFailResetPasswordWithMissingToken() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "newPassword": "NuevaContraseña123!"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to reset password with empty token")
+    void shouldFailResetPasswordWithEmptyToken() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "token": "",
+                        "newPassword": "NuevaContraseña123!"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to reset password with missing new password")
+    void shouldFailResetPasswordWithMissingPassword() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "token": "token12345"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to reset password with empty new password")
+    void shouldFailResetPasswordWithEmptyPassword() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "token": "token12345",
+                        "newPassword": ""
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should fail to reset password with weak password")
+    void shouldFailResetPasswordWithWeakPassword() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "token": "token12345",
+                        "newPassword": "invalida"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should request password reset for professor email")
+    void shouldRequestPasswordResetForProfessor() throws Exception {
+        doNothing().when(passwordResetService).requestPasswordReset(any(ForgotPasswordRequest.class));
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "email": "maria.garcia@escuelaing.edu.co"
+                    }
+                    """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Si el email existe, recibirás un código de recuperación"));
+    }
+
+    @Test
+    @DisplayName("Should reset password with valid token and strong password")
+    void shouldResetPasswordWithValidTokenAndStrongPassword() throws Exception {
+        doNothing().when(passwordResetService).resetPassword(any(ResetPasswordRequest.class));
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "resetToken": "a1b2c3d4",
+                        "newPassword": "ContraseñaValida123!",
+                        "confirmPassword": "ContraseñaValida123!"
+                    }
+                    """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Contraseña actualizada con éxito"));
     }
 }

@@ -47,6 +47,10 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
             log.error("Email ya registrado: {}", request.getEmail());
             throw new AuthException("El email ya está registrado");
         }
+        if (userAuthRepositoryOutPort.existsById(request.getInstitutionalId())){
+            log.error("Carnet ya registrado: {}", request.getInstitutionalId());
+            throw new AuthException("Carnet ya registrado");
+        }
 
         // 2. Hashear la contraseña
         String passwordHash = passwordEncoder.encode(request.getPassword());

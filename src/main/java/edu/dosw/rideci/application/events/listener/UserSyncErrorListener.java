@@ -3,7 +3,6 @@ package edu.dosw.rideci.application.events.listener;
 import edu.dosw.rideci.application.events.UserSyncFailedEvent;
 import edu.dosw.rideci.application.port.out.UserAuthRepositoryOutPort;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;

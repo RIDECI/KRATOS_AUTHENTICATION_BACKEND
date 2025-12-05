@@ -11,4 +11,5 @@ public interface UserAuthRepositoryOutPort {
     boolean existsByEmail(String email);
     UserAuth update(String id, UserAuth userAuth);
     void deleteByEmail(String userEmail);
+    boolean existsById(Long userId);
 }
