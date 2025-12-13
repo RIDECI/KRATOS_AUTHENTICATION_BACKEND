@@ -60,7 +60,7 @@ public class PasswordResetService implements ResetPasswordUseCase {
         resetCachePort.saveResetToken(resetToken, tokenData, EXPIRATION_MINUTES);
         resetCachePort.saveResetAttempt(request.getEmail());
 
-        eventPublisher.publish(request.getEmail(), resetToken);
+        publishResetEvent(request.getEmail(), resetToken);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class PasswordResetService implements ResetPasswordUseCase {
                     .expiryMinutes(EXPIRATION_MINUTES)
                     .build();
 
-            eventPublisher.publish(event, "auth.password.reset");
+            eventPublisher.publish(event, "user.exchange");
             log.info("Evento de reset publicado para: {}", email);
 
         } catch (Exception e) {
