@@ -49,9 +49,6 @@ public class PasswordResetService implements ResetPasswordUseCase {
 
         String resetToken = generateResetToken();
 
-        log.warn("🔑 TOKEN DE RESET GENERADO (SOLO DESARROLLO): {} para email: {}",
-                resetToken, request.getEmail());
-
         PasswordResetTokenData tokenData = PasswordResetTokenData.builder()
                 .email(request.getEmail())
                 .createdAt(LocalDateTime.now())

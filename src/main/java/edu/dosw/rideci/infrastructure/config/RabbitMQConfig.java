@@ -17,6 +17,8 @@ public class RabbitMQConfig {
 
     public static final String USER_EXCHANGE = "user.exchange";
 
+    //public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
+
     public static final String USER_CREATE_QUEUE = "auth.sync.queue";
 
     public static final String USER_CREATE_ROUTING_KEY = "user.sync.failed";
@@ -31,6 +33,8 @@ public class RabbitMQConfig {
         return new TopicExchange(USER_EXCHANGE);
     }
 
+    //@Bean
+    //public TopicExchange notificationExchange() {return new TopicExchange(NOTIFICATION_EXCHANGE);}
 
     @Bean
     public Binding userCreateBinding(Queue userCreateQueue, TopicExchange userExchange) {
@@ -39,6 +43,14 @@ public class RabbitMQConfig {
                 .to(userExchange)
                 .with(USER_CREATE_ROUTING_KEY);
     }
+
+    /**@Bean
+    public Binding notificationCreateBinding(Queue userCreateQueue, TopicExchange notificationExchange) {
+        return BindingBuilder
+                .bind(userCreateQueue)
+                .to(notificationExchange)
+                .with(USER_CREATE_ROUTING_KEY);
+    }*/
 
     @Bean
     public MessageConverter jsonMessageConverter() {
