@@ -49,9 +49,6 @@ public class PasswordResetService implements ResetPasswordUseCase {
 
         String resetToken = generateResetToken();
 
-        log.warn("🔑 TOKEN DE RESET GENERADO (SOLO DESARROLLO): {} para email: {}",
-                resetToken, request.getEmail());
-
         PasswordResetTokenData tokenData = PasswordResetTokenData.builder()
                 .email(request.getEmail())
                 .createdAt(LocalDateTime.now())
@@ -60,7 +57,7 @@ public class PasswordResetService implements ResetPasswordUseCase {
         resetCachePort.saveResetToken(resetToken, tokenData, EXPIRATION_MINUTES);
         resetCachePort.saveResetAttempt(request.getEmail());
 
-        eventPublisher.publish(request.getEmail(), resetToken);
+        publishResetEvent(request.getEmail(), resetToken);
     }
 
     @Override
@@ -146,7 +143,7 @@ public class PasswordResetService implements ResetPasswordUseCase {
                     .expiryMinutes(EXPIRATION_MINUTES)
                     .build();
 
-            eventPublisher.publish(event, "auth.password.reset");
+            eventPublisher.publish(event, "auth.user.resetPassword");
             log.info("Evento de reset publicado para: {}", email);
 
         } catch (Exception e) {
