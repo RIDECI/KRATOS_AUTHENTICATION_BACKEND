@@ -146,7 +146,7 @@ public class PasswordResetService implements ResetPasswordUseCase {
                     .expiryMinutes(EXPIRATION_MINUTES)
                     .build();
 
-            eventPublisher.publish(event, "user.exchange");
+            eventPublisher.publish(event, "events.notification.resetPassword");
             log.info("Evento de reset publicado para: {}", email);
 
         } catch (Exception e) {
