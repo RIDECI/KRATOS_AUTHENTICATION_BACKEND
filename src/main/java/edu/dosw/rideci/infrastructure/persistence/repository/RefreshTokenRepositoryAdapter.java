@@ -12,7 +12,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryOutPort {
 
-    private final RefreshTokenRepository mongoRepository;
+    private static final Long TTL_DAYS = 259200L;
+
+    private final RefreshTokenRepository redisRepository;
 
     @Override
     public RefreshToken save(RefreshToken refreshToken) {
@@ -21,26 +23,27 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryOutP
                 .userAuthId(refreshToken.getUserAuthId())
                 .expiresAt(refreshToken.getExpiresAt())
                 .createdAt(refreshToken.getCreatedAt())
+                .ttl(TTL_DAYS)
                 .build();
 
-        RefreshTokenDocument saved = mongoRepository.save(document);
+        RefreshTokenDocument saved = redisRepository.save(document);
         return toDomain(saved);
     }
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {
-        return mongoRepository.findByToken(token)
+        return redisRepository.findByToken(token)
                 .map(this::toDomain);
     }
 
     @Override
     public void deleteAllByUserAuthId(String userAuthId) {
-        mongoRepository.deleteAllByUserAuthId(userAuthId);
+        redisRepository.deleteAllByUserAuthId(userAuthId);
     }
 
     @Override
     public void deleteByToken(RefreshToken token) {
-        mongoRepository.deleteByToken(token);
+        redisRepository.deleteByToken(token.getToken());
     }
 
     private RefreshToken toDomain(RefreshTokenDocument document) {
@@ -53,4 +56,3 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryOutP
                 .build();
     }
 }
-

@@ -4,7 +4,7 @@ import java.util.Date;
 
 public interface TokenProviderOutPort {
 
-    String generateAccessToken(String email, String role, Long userId);
+    String generateAccessToken(String email, String name, String role, Long userId);
 
     String generateRefreshToken(String email, Long userId);
 

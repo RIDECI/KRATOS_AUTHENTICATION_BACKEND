@@ -189,6 +189,7 @@
                                 <exclude>**/infrastructure/config/**</exclude>
                                 <exclude>**/infrastructure/persistence/entity/**</exclude>
                                 <exclude>**/infrastructure/persistence/repository/mapper/**</exclude>
+                                <exclude>**/infrastructure/persistence/repository/RabbitEventPublisher.class</exclude>
                                 <exclude>**/KratosAuthenticationBackendApplication.class</exclude>
                             </excludes>
                         </configuration>

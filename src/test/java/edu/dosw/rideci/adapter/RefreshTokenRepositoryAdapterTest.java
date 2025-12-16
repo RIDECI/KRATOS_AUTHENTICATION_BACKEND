@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 class RefreshTokenRepositoryAdapterTest {
 
     @Mock
-    private RefreshTokenRepository mongoRepository;
+    private RefreshTokenRepository redisRepository;
 
     @InjectMocks
     private RefreshTokenRepositoryAdapter refreshTokenRepositoryAdapter;
@@ -62,7 +62,7 @@ class RefreshTokenRepositoryAdapterTest {
     @DisplayName("Should save RefreshToken - Successfull")
     void shouldSaveRefreshToken() {
         // Given
-        when(mongoRepository.save(any(RefreshTokenDocument.class))).thenReturn(refreshTokenDocument);
+        when(redisRepository.save(any(RefreshTokenDocument.class))).thenReturn(refreshTokenDocument);
 
         // When
         RefreshToken result = refreshTokenRepositoryAdapter.save(refreshToken);
@@ -75,7 +75,7 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(result.getExpiresAt()).isEqualTo(expiresAt);
         assertThat(result.getCreatedAt()).isEqualTo(now);
 
-        verify(mongoRepository, times(1)).save(any(RefreshTokenDocument.class));
+        verify(redisRepository, times(1)).save(any(RefreshTokenDocument.class));
     }
 
     @Test
@@ -96,7 +96,7 @@ class RefreshTokenRepositoryAdapterTest {
                 .createdAt(now)
                 .build();
 
-        when(mongoRepository.save(any(RefreshTokenDocument.class))).thenReturn(savedDocument);
+        when(redisRepository.save(any(RefreshTokenDocument.class))).thenReturn(savedDocument);
 
         RefreshToken result = refreshTokenRepositoryAdapter.save(newRefreshToken);
 
@@ -105,14 +105,14 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(result.getToken()).isEqualTo("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_token");
         assertThat(result.getUserAuthId()).isEqualTo("usuario456");
 
-        verify(mongoRepository, times(1)).save(any(RefreshTokenDocument.class));
+        verify(redisRepository, times(1)).save(any(RefreshTokenDocument.class));
     }
 
     @Test
     @DisplayName("Should find RefreshToken by token - Success")
     void shouldFindRefreshTokenByToken() {
         String tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh_token_example";
-        when(mongoRepository.findByToken(tokenString)).thenReturn(Optional.of(refreshTokenDocument));
+        when(redisRepository.findByToken(tokenString)).thenReturn(Optional.of(refreshTokenDocument));
 
         Optional<RefreshToken> result = refreshTokenRepositoryAdapter.findByToken(tokenString);
 
@@ -122,65 +122,67 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(result.get().getUserAuthId()).isEqualTo("usuario123");
         assertThat(result.get().getExpiresAt()).isEqualTo(expiresAt);
 
-        verify(mongoRepository, times(1)).findByToken(tokenString);
+        verify(redisRepository, times(1)).findByToken(tokenString);
     }
 
     @Test
     @DisplayName("Should return empty when token does not exist")
     void shouldReturnEmptyWhenTokenNotFound() {
         String nonExistentToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nonexistent_token";
-        when(mongoRepository.findByToken(nonExistentToken)).thenReturn(Optional.empty());
+        when(redisRepository.findByToken(nonExistentToken)).thenReturn(Optional.empty());
 
         Optional<RefreshToken> result = refreshTokenRepositoryAdapter.findByToken(nonExistentToken);
 
         assertThat(result).isEmpty();
 
-        verify(mongoRepository, times(1)).findByToken(nonExistentToken);
+        verify(redisRepository, times(1)).findByToken(nonExistentToken);
     }
 
     @Test
     @DisplayName("Should delete all RefreshTokens by userAuthId")
     void shouldDeleteAllByUserAuthId() {
         String userAuthId = "usuario123";
-        doNothing().when(mongoRepository).deleteAllByUserAuthId(userAuthId);
+        doNothing().when(redisRepository).deleteAllByUserAuthId(userAuthId);
 
         refreshTokenRepositoryAdapter.deleteAllByUserAuthId(userAuthId);
 
-        verify(mongoRepository, times(1)).deleteAllByUserAuthId(userAuthId);
+        verify(redisRepository, times(1)).deleteAllByUserAuthId(userAuthId);
     }
 
     @Test
     @DisplayName("Should delete all tokens for user without exception")
     void shouldDeleteAllTokensWithoutException() {
         String userAuthId = "usuario456";
-        doNothing().when(mongoRepository).deleteAllByUserAuthId(userAuthId);
+        doNothing().when(redisRepository).deleteAllByUserAuthId(userAuthId);
 
         refreshTokenRepositoryAdapter.deleteAllByUserAuthId(userAuthId);
 
-        verify(mongoRepository, times(1)).deleteAllByUserAuthId(userAuthId);
-        verifyNoMoreInteractions(mongoRepository);
+        verify(redisRepository, times(1)).deleteAllByUserAuthId(userAuthId);
+        verifyNoMoreInteractions(redisRepository);
     }
 
     @Test
     @DisplayName("Should attempt to delete all tokens even if user has no tokens")
     void shouldAttemptDeleteAllTokensForUserWithNoTokens() {
         String userAuthId = "usuarioSinTokens";
-        doNothing().when(mongoRepository).deleteAllByUserAuthId(userAuthId);
+        doNothing().when(redisRepository).deleteAllByUserAuthId(userAuthId);
 
         refreshTokenRepositoryAdapter.deleteAllByUserAuthId(userAuthId);
 
         // Then
-        verify(mongoRepository, times(1)).deleteAllByUserAuthId(userAuthId);
+        verify(redisRepository, times(1)).deleteAllByUserAuthId(userAuthId);
     }
 
     @Test
     @DisplayName("Should delete RefreshToken by token")
     void shouldDeleteByToken() {
-        doNothing().when(mongoRepository).deleteByToken(any(RefreshToken.class));
+        String tokenString = refreshToken.getToken();
+
+        doNothing().when(redisRepository).deleteByToken(tokenString);
 
         refreshTokenRepositoryAdapter.deleteByToken(refreshToken);
 
-        verify(mongoRepository, times(1)).deleteByToken(refreshToken);
+        verify(redisRepository, times(1)).deleteByToken(tokenString);
     }
 
     @Test
@@ -194,12 +196,14 @@ class RefreshTokenRepositoryAdapterTest {
                 .createdAt(now)
                 .build();
 
-        doNothing().when(mongoRepository).deleteByToken(tokenToDelete);
+        String tokenString = tokenToDelete.getToken();
+
+        doNothing().when(redisRepository).deleteByToken(tokenString);
 
         refreshTokenRepositoryAdapter.deleteByToken(tokenToDelete);
 
-        verify(mongoRepository, times(1)).deleteByToken(tokenToDelete);
-        verifyNoMoreInteractions(mongoRepository);
+        verify(redisRepository, times(1)).deleteByToken(tokenString);
+        verifyNoMoreInteractions(redisRepository);
     }
 
     @Test
@@ -221,7 +225,7 @@ class RefreshTokenRepositoryAdapterTest {
                 .createdAt(now)
                 .build();
 
-        when(mongoRepository.save(any(RefreshTokenDocument.class))).thenReturn(savedDocument);
+        when(redisRepository.save(any(RefreshTokenDocument.class))).thenReturn(savedDocument);
 
         RefreshToken result = refreshTokenRepositoryAdapter.save(longLivedToken);
 
@@ -229,14 +233,14 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(result.getExpiresAt()).isEqualTo(futureExpiration);
         assertThat(result.getExpiresAt()).isAfter(now);
 
-        verify(mongoRepository, times(1)).save(any(RefreshTokenDocument.class));
+        verify(redisRepository, times(1)).save(any(RefreshTokenDocument.class));
     }
 
     @Test
     @DisplayName("Should map all fields correctly from document to domain")
     void shouldMapAllFieldsCorrectlyFromDocumentToDomain() {
         String tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.complete_token";
-        when(mongoRepository.findByToken(tokenString)).thenReturn(Optional.of(refreshTokenDocument));
+        when(redisRepository.findByToken(tokenString)).thenReturn(Optional.of(refreshTokenDocument));
 
         Optional<RefreshToken> result = refreshTokenRepositoryAdapter.findByToken(tokenString);
 
@@ -248,7 +252,7 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(token.getExpiresAt()).isEqualTo(refreshTokenDocument.getExpiresAt());
         assertThat(token.getCreatedAt()).isEqualTo(refreshTokenDocument.getCreatedAt());
 
-        verify(mongoRepository, times(1)).findByToken(tokenString);
+        verify(redisRepository, times(1)).findByToken(tokenString);
     }
 
     @Test
@@ -286,7 +290,7 @@ class RefreshTokenRepositoryAdapterTest {
                 .createdAt(now)
                 .build();
 
-        when(mongoRepository.save(any(RefreshTokenDocument.class)))
+        when(redisRepository.save(any(RefreshTokenDocument.class)))
                 .thenReturn(savedDoc1)
                 .thenReturn(savedDoc2);
 
@@ -298,7 +302,7 @@ class RefreshTokenRepositoryAdapterTest {
         assertThat(result1.getId()).isNotEqualTo(result2.getId());
         assertThat(result1.getToken()).isNotEqualTo(result2.getToken());
 
-        verify(mongoRepository, times(2)).save(any(RefreshTokenDocument.class));
+        verify(redisRepository, times(2)).save(any(RefreshTokenDocument.class));
     }
 
     @Test
@@ -312,10 +316,12 @@ class RefreshTokenRepositoryAdapterTest {
                 .createdAt(now)
                 .build();
 
-        doNothing().when(mongoRepository).deleteByToken(nonExistentToken);
+        String tokenString = nonExistentToken.getToken();
+
+        doNothing().when(redisRepository).deleteByToken(tokenString);
 
         refreshTokenRepositoryAdapter.deleteByToken(nonExistentToken);
 
-        verify(mongoRepository, times(1)).deleteByToken(nonExistentToken);
+        verify(redisRepository, times(1)).deleteByToken(tokenString);
     }
 }

@@ -30,6 +30,7 @@ class JWTTokenProviderAdapterTest {
     private JWTTokenProviderAdapter jwtTokenProvider;
 
     private String testEmail;
+    private String testName;
     private String testRole;
     private Long testUserId;
 
@@ -37,6 +38,7 @@ class JWTTokenProviderAdapterTest {
     void setup() {
         jwtTokenProvider = new JWTTokenProviderAdapter();
         testEmail = "david.palacios-p@mail.escuelaing.edu.co";
+        testName = "David Palacios";
         testRole = "STUDENT";
         testUserId = 1000100282L;
     }
@@ -45,7 +47,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should generate access token - Success")
     void shouldGenerateAccessToken() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
@@ -55,7 +57,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should generate access token with correct claims")
     void shouldGenerateAccessTokenWithCorrectClaims() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Claims claims = jwtTokenProvider.getClaims(token);
         assertThat(claims.getSubject()).isEqualTo(testEmail);
@@ -68,7 +70,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should generate access token with expiration time")
     void shouldGenerateAccessTokenWithExpiration() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Date expiration = jwtTokenProvider.getExpirationFromToken(token);
         Date now = new Date();
@@ -85,7 +87,7 @@ class JWTTokenProviderAdapterTest {
     @DisplayName("Should identify token as access token")
     void shouldIdentifyAsAccessToken() {
 
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         boolean isAccessToken = jwtTokenProvider.isAccessToken(token);
         boolean isRefreshToken = jwtTokenProvider.isRefreshToken(token);
@@ -152,7 +154,7 @@ class JWTTokenProviderAdapterTest {
     @DisplayName("Should validate valid token successfully")
     void shouldValidateValidToken() {
 
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         boolean isValid = jwtTokenProvider.isTokenValid(token);
 
@@ -197,7 +199,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should extract email from token")
     void shouldExtractEmailFromToken() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         String extractedEmail = jwtTokenProvider.getEmailFromToken(token);
 
@@ -207,7 +209,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should extract userId from token")
     void shouldExtractUserIdFromToken() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Long extractedUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -217,7 +219,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should extract expiration date from token")
     void shouldExtractExpirationFromToken() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Date expiration = jwtTokenProvider.getExpirationFromToken(token);
 
@@ -228,7 +230,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should return null for invalid userId format")
     void shouldReturnNullForInvalidUserIdFormat() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -240,7 +242,7 @@ class JWTTokenProviderAdapterTest {
     void shouldGenerateTokenForProfessorRole() {
         String professorRole = "PROFESSOR";
 
-        String token = jwtTokenProvider.generateAccessToken(testEmail, professorRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, professorRole, testUserId);
 
         Claims claims = jwtTokenProvider.getClaims(token);
         assertThat(claims.get("role", String.class)).isEqualTo(professorRole);
@@ -251,7 +253,7 @@ class JWTTokenProviderAdapterTest {
     void shouldGenerateTokenForAdminRole() {
         String adminRole = "ADMINISTRATOR";
 
-        String token = jwtTokenProvider.generateAccessToken(testEmail, adminRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, adminRole, testUserId);
 
         Claims claims = jwtTokenProvider.getClaims(token);
         assertThat(claims.get("role", String.class)).isEqualTo(adminRole);
@@ -260,7 +262,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should extract all claims correctly")
     void shouldExtractAllClaimsCorrectly() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Claims claims = jwtTokenProvider.getClaims(token);
 
@@ -301,7 +303,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should return false when token signature is invalid")
     void shouldReturnFalseWhenTokenSignatureIsInvalid() {
-        String validToken = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String validToken = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         String[] parts = validToken.split("\\.");
         String corruptedToken = parts[0] + "." + parts[1] + "." + parts[2] + "corrupted";
@@ -378,7 +380,7 @@ class JWTTokenProviderAdapterTest {
     @Test
     @DisplayName("Should handle userId as Long")
     void shouldHandleUserIdAsLong() {
-        String token = jwtTokenProvider.generateAccessToken(testEmail, testRole, testUserId);
+        String token = jwtTokenProvider.generateAccessToken(testEmail, testName, testRole, testUserId);
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
 

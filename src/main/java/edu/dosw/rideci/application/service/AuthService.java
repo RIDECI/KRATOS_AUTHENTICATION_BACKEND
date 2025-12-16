@@ -59,6 +59,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 3. Crear UserAuth (credenciales)
         UserAuth userAuth = UserAuth.builder()
                 .email(request.getEmail())
+                .name(request.getName())
                 .institutionalId(request.getInstitutionalId())
                 .passwordHash(passwordHash)
                 .role(request.getRole())
@@ -127,6 +128,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 4. Generar tokens JWT
         String accessToken = tokenProvider.generateAccessToken(
                 userAuth.getEmail(),
+                userAuth.getName(),
                 userAuth.getRole().toString(),
                 userAuth.getInstitutionalId()
         );
@@ -188,6 +190,7 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
         // 5. Generar nuevo access token
         String newAccessToken = tokenProvider.generateAccessToken(
                 userAuth.getEmail(),
+                userAuth.getName(),
                 userAuth.getRole().toString(),
                 userAuth.getInstitutionalId()
         );
@@ -207,10 +210,10 @@ public class AuthService implements LoginUserUseCase, RegisterUserUseCase {
                 .token(token)
                 .userAuthId(userAuthId)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(7)) // 7 días
+                .expiresAt(LocalDateTime.now().plusDays(3)) // Cambiar a 3 días
                 .build();
 
         refreshTokenRepositoryOutPort.save(refreshToken);
-        log.debug("Refresh token guardado en BD");
+        log.debug("Refresh token guardado en Redis con TTL de 3 días");
     }
 }

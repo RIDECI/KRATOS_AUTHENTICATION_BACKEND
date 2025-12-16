@@ -43,9 +43,10 @@ public class JWTTokenProviderAdapter implements TokenProviderOutPort {
      * Genera un Access Token (30 minutos)
      */
     @Override
-    public String generateAccessToken(String email, String role, Long userId) {
+    public String generateAccessToken(String email, String name, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("name", name);
         claims.put("createdAt", LocalDateTime.now().toString());
         claims.put("userId", userId);
         claims.put("type", "ACCESS");
