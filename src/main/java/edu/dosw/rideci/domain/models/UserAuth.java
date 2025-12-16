@@ -14,6 +14,7 @@ public class UserAuth {
     private String id; // MongoDB genera el ID automáticamente
 
     private Long institutionalId;
+    private String name;
     private String email;
     private String passwordHash;
     private Role role;

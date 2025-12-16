@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 public class UserAuthDocument {
     @Id
     private String id;
+    private String name;
     @Indexed(unique = true)
     private String email;
     private Long institutionalId;
