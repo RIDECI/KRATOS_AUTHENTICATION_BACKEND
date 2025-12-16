@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.persistence.repository;
+package edu.dosw.rideci.infrastructure.persistence.redis;
 
 import edu.dosw.rideci.infrastructure.persistence.entity.RefreshTokenDocument;
 import org.springframework.data.repository.CrudRepository;

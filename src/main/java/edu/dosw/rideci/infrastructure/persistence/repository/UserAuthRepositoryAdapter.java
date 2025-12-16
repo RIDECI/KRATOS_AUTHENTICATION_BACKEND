@@ -1,4 +1,5 @@
 package edu.dosw.rideci.infrastructure.persistence.repository;
+import edu.dosw.rideci.infrastructure.persistence.mongodb.UserAuthRepository;
 import edu.dosw.rideci.infrastructure.persistence.repository.mapper.UserAuthMapper;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
