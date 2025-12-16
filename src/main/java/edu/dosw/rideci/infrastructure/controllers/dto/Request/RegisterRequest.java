@@ -39,6 +39,7 @@ public class RegisterRequest {
     )
     private String password;
     @NotBlank(message = "El teléfono es obligatorio")
+    @Size(min = 10, max = 10, message = "El número de telefono es de 10 caracteres")
     private String phoneNumber;
     @NotNull(message = "El rol es obligatorio")
     private Role role; // STUDENT, PROFESSOR, ADMIN
@@ -49,5 +50,6 @@ public class RegisterRequest {
     @NotNull(message = "La dirección es obligatoria")
     private String Address;
     @NotNull(message = "El carnet institucional es obligatorio")
+    @Size(min = 10, max = 10)
     private Long institutionalId;
 }

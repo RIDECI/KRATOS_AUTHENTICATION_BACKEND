@@ -20,8 +20,8 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
     public UserAuth save(UserAuth userAuth) {
         UserAuthDocument document = new UserAuthDocument(
                 userAuth.getId(),
-                userAuth.getEmail(),
                 userAuth.getName(),
+                userAuth.getEmail(),
                 userAuth.getInstitutionalId(),
                 userAuth.getPasswordHash(),
                 userAuth.getRole(),
