@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * - El access token dura solo 15 minutos
  * - El refresh token dura 3 días con TTL automático en Redis
  * - Cuando el access token se vence, el cliente usa el refresh token
- *   para obtener un nuevo access token SIN tener que hacer login de nuevo
+ * para obtener un nuevo access token SIN tener que hacer login de nuevo
  */
 @Data
 @Builder
