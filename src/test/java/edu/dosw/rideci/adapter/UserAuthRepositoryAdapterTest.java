@@ -3,7 +3,7 @@ package edu.dosw.rideci.adapter;
 import edu.dosw.rideci.domain.models.UserAuth;
 import edu.dosw.rideci.domain.models.enums.Role;
 import edu.dosw.rideci.infrastructure.persistence.entity.UserAuthDocument;
-import edu.dosw.rideci.infrastructure.persistence.repository.UserAuthRepository;
+import edu.dosw.rideci.infrastructure.persistence.mongodb.UserAuthRepository;
 import edu.dosw.rideci.infrastructure.persistence.repository.UserAuthRepositoryAdapter;
 import edu.dosw.rideci.infrastructure.persistence.repository.mapper.UserAuthMapper;
 import org.junit.jupiter.api.BeforeEach;

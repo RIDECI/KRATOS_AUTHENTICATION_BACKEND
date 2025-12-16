@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.persistence.repository;
+package edu.dosw.rideci.infrastructure.persistence.mongodb;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

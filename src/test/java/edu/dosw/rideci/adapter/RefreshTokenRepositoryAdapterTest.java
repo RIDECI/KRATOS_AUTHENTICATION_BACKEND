@@ -2,7 +2,7 @@ package edu.dosw.rideci.adapter;
 
 import edu.dosw.rideci.domain.models.RefreshToken;
 import edu.dosw.rideci.infrastructure.persistence.entity.RefreshTokenDocument;
-import edu.dosw.rideci.infrastructure.persistence.repository.RefreshTokenRepository;
+import edu.dosw.rideci.infrastructure.persistence.redis.RefreshTokenRepository;
 import edu.dosw.rideci.infrastructure.persistence.repository.RefreshTokenRepositoryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

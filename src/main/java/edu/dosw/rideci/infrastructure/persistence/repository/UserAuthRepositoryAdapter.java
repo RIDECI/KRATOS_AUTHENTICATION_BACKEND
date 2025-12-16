@@ -1,4 +1,5 @@
 package edu.dosw.rideci.infrastructure.persistence.repository;
+import edu.dosw.rideci.infrastructure.persistence.mongodb.UserAuthRepository;
 import edu.dosw.rideci.infrastructure.persistence.repository.mapper.UserAuthMapper;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,8 @@ public class UserAuthRepositoryAdapter implements UserAuthRepositoryOutPort {
     public UserAuth save(UserAuth userAuth) {
         UserAuthDocument document = new UserAuthDocument(
                 userAuth.getId(),
-                userAuth.getEmail(),
                 userAuth.getName(),
+                userAuth.getEmail(),
                 userAuth.getInstitutionalId(),
                 userAuth.getPasswordHash(),
                 userAuth.getRole(),

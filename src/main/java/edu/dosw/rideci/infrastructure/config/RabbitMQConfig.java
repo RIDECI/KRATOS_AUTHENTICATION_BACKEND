@@ -17,8 +17,6 @@ public class RabbitMQConfig {
 
     public static final String USER_EXCHANGE = "user.exchange";
 
-    //public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
-
     public static final String USER_CREATE_QUEUE = "auth.sync.queue";
 
     public static final String USER_CREATE_ROUTING_KEY = "user.sync.failed";
